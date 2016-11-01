@@ -41,8 +41,6 @@ public class Main {
             // Answer to client request
             DatagramPacket clientResponsePacket = new DatagramPacket(clientPacket.getData(), clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
             pointToPointSocket.send(clientResponsePacket);
-
-            Thread.sleep(10000);
         }
     }
 }
