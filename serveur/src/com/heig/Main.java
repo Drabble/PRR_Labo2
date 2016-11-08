@@ -1,8 +1,7 @@
-package com.company;
+package com.heig;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.Arrays;
 import java.util.Random;
 
 public class Main {

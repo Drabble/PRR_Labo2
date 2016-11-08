@@ -1,4 +1,4 @@
-package com.company;
+package com.heig;
 
 /**
  * Created by oem on 01.11.16.
@@ -9,7 +9,7 @@ public enum Protocol {
     SERVICE_DONT_EXIST,
     SUB,
     CONFIRM_SUB,
-    ASK_SERVIVE_LIST,
+    ASK_SERVICE_LIST,
     RETURN_SERVICES,
     ADD_SERVICE,
     DELETE_SERVICE,

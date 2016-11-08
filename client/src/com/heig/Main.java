@@ -1,4 +1,4 @@
-package com.company;
+package com.heig;
 
 import java.io.IOException;
 import java.net.*;

@@ -1,27 +1,16 @@
-package com.company;
+package com.heig;
 
 /**
  * Created by oem on 01.11.16.
  */
-public class Service {
-    int IDservice;
+public class Linker {
     String ip;
     int port;
 
-    public Service(int IDservice, String ip, int port) {
-        this.IDservice = IDservice;
+    public Linker(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
-
-    public int getIDservice() {
-        return IDservice;
-    }
-
-    public void setIDservice(int IDservice) {
-        this.IDservice = IDservice;
-    }
-
     public String getIp() {
         return ip;
     }
