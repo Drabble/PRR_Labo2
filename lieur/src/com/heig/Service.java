@@ -1,25 +1,29 @@
 package com.heig;
 
+import java.util.Date;
+
 /**
  * Created by oem on 01.11.16.
  */
 public class Service {
-    int IDservice;
+    int idService;
     String ip;
     int port;
+    Date lastUse;
 
-    public Service(int IDservice, String ip, int port) {
-        this.IDservice = IDservice;
+    public Service(int idService, String ip, int port) {
+        this.idService = idService;
         this.ip = ip;
         this.port = port;
+        this.lastUse = null;
     }
 
-    public int getIDservice() {
-        return IDservice;
+    public int getIdService() {
+        return idService;
     }
 
-    public void setIDservice(int IDservice) {
-        this.IDservice = IDservice;
+    public void setIdService(int idService) {
+        this.idService = idService;
     }
 
     public String getIp() {
@@ -36,5 +40,13 @@ public class Service {
 
     public void setPort(int port) {
         this.port = port;
+    }
+
+    public Date getLastUse() {
+        return lastUse;
+    }
+
+    public void setLastUse(Date lastUse) {
+        this.lastUse = lastUse;
     }
 }
