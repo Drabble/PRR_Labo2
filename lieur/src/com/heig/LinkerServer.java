@@ -156,26 +156,31 @@ public class LinkerServer {
      * @throws IOException
      */
     public void sendServiceToClient(DatagramPacket serviceNumberPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+        // Create the packet
         DatagramPacket servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.ADDRESS_SERVICE.ordinal()}, 702, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
-        byte[] IDservice = new byte[1];
-        byte[] IP = new byte[4];
+
+        // Create the buffers that will be sent
+        byte[] idService = new byte[1];
+        byte[] ip = new byte[4];
         byte[] port = new byte[2];
-        int i = 0;
-        int j = 2;
-        serviceNumberPacket.setData(Util.intToBytes(serviceList.size(), 1), 1, 1);
-        serviceNumberPacket.setLength(2 + (7 * serviceList.size()));
+
+        // Set the packet length to
+        servicePacket.setLength(8);
 
         // Get the last used service in the list which corresponds to the service type
-        for (Service service : serviceList) {
-            IDservice = Util.intToBytes(service.getIdService(), IDservice.length);
-            IP = InetAddress.getByName(service.getIp()).getAddress();
-            port = Util.intToBytes(service.getPort(), port.length);
-            int u = 10;
-            serviceNumberPacket.setData(IDservice, 2 + 7 * i, IDservice.length);
-            serviceNumberPacket.setData(IP, 3 + 7 * i, IP.length);
-            serviceNumberPacket.setData(port, 8 + 7 * i, port.length);
-            i++;
-        }
+        Service service = serviceList.stream().min((a, b) -> a.getLastUse() == null ? -1 : b.getLastUse() == null ? 1 : a.getLastUse().compareTo(b.getLastUse())).get();
+
+        // Convert the service data to bytes
+        idService = Util.intToBytes(service.getIdService(), idService.length);
+        ip = InetAddress.getByName(service.getIp()).getAddress();
+        port = Util.intToBytes(service.getPort(), port.length);
+
+        // Add the service data to the packet
+        serviceNumberPacket.setData(idService, 1, idService.length);
+        serviceNumberPacket.setData(ip, 2, ip.length);
+        serviceNumberPacket.setData(port, 6, port.length);
+
+        // Send the packet
         pointToPointSocket.send(serviceNumberPacket);
     }
 
