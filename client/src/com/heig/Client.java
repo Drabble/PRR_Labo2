@@ -59,23 +59,25 @@ public class Client {
             pointToPointSocket.send(linkerPacket);
 
             // Receive the service ip and port
-            // 4 premiers byte = ip , 4 suivant = 0 port ?
             byte[] buffer = new byte[7];
             DatagramPacket serviceAddressPacket = new DatagramPacket(buffer, buffer.length);
             pointToPointSocket.receive(serviceAddressPacket);
-            InetAddress serviceAddress = InetAddress.getByAddress(Arrays.copyOfRange(serviceAddressPacket.getData(), 0, 4));
-            // TODO ADD PORT
-            int port = 111;
 
             // Service not found
-            if(serviceAddress.getHostAddress().compareTo("0.0.0.0") == 0){
+            if(serviceAddressPacket.getData()[0] == Protocol.SERVICE_DONT_EXIST.ordinal()){
                 System.out.println("Service not found");
                 break;
             }
             // Service found - use the service
-            else{
+            else if(serviceAddressPacket.getData()[0] == Protocol.ADDRESS_SERVICE.ordinal()){
+                // Get the ip and port
+                InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceAddressPacket.getData(), 1, 4));
+                byte[] portByte = Arrays.copyOfRange(serviceAddressPacket.getData(), 5, 6);
+                int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
+
+                // Send the echo message
                 byte[] echoMessage = {1,1,1,1};
-                DatagramPacket servicePacket = new DatagramPacket(echoMessage, echoMessage.length, serviceAddress, port);
+                DatagramPacket servicePacket = new DatagramPacket(echoMessage, echoMessage.length, ip, port);
                 try {
                     pointToPointSocket.send(servicePacket);
                     System.out.println("Echo message sent to the service");
