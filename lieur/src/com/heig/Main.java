@@ -1,9 +1,9 @@
 /**
- * Project: Labo002
+ * Project: Labo02
  * Authors: Antoine Drabble & Simon Baehler
  * Date: 08.11.2016
  * Rapport: We defined a protocol......
- *          We limit to 100 the number of service per linker
+ *          We limit to 100 the number of service per linker (buffer size is 702 = 100 services + protocol type + number of services)
  */
 package com.heig;
 

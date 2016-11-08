@@ -24,9 +24,8 @@ public class LinkerServer {
             new Linker("127.0.0.1", 7780),
             new Linker("127.0.0.1", 7781),
             new Linker("127.0.0.1", 7782)
-    };
 
-    final int pointToPointPort = 1234; // TODO : Make this an argument to the main
+    };
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -47,6 +46,7 @@ public class LinkerServer {
      */
     public void start() throws IOException, InterruptedException {
         // Create point to point socket to send messages to the linker
+        final int pointToPointPort = 1234;
         DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
         System.out.println("Started the socket!");
 
