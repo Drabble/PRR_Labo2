@@ -18,28 +18,38 @@ public class Main {
 
     };
 
-    public static void main(String[] args) throws InterruptedException, IOException {
+    public void main(String[] args) throws InterruptedException, IOException {
         // Create point to point socket to send messages to the linker
         final int pointToPointPort = 1234;
         DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
         System.out.println("Started the socket!");
 
-        /*Service s1 = new Service(1,"192.186.1.1",7777);
+        Service s1 = new Service(1,"192.186.1.1",7777);
         Service s2 = new Service(2,"192.186.1.1",7778);
         Service s3 = new Service(2,"192.186.1.1",7779);
         serviceList.add(s1);
         serviceList.add(s2);
-        serviceList.add(s3);*/
+        serviceList.add(s3);
 
         start(pointToPointSocket);
         while (true) {
-
+            byte[]  buffer = new byte[1];
+            DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+            pointToPointSocket.receive(receivePacket);
+            int type = receivePacket.getData()[0];
+            if(type == (byte)Protocol.ASK_SERVIVE_LIST.ordinal())
+            {
+                sendServiceList(receivePacket);
+            }
+            else if(type == (byte)Protocol.ADD_SERVICE.ordinal()){
+                addService(receivePacket);
+            }
         }
 	// write your code here
     }
 
     //fonction lancé au demmarage pour se sycroniser avec les autres lieur
-    public static void start(DatagramSocket pointToPointSocket) throws InterruptedException, IOException
+    private void start(DatagramSocket pointToPointSocket) throws InterruptedException, IOException
     {
         for(Linker linker : linkers){
             // Ask the linked for service number 0
@@ -64,10 +74,30 @@ public class Main {
             }
 
             InetAddress serviceAddress = InetAddress.getByAddress(Arrays.copyOfRange(serviceAddressPacket.getData(), 0, 4));
+
         }
     }
-    public void sendServiceList()
+    private void sendServiceList(DatagramPacket serviceAddressPacket)throws InterruptedException, IOException
     {
+
+            DatagramPacket serviceListPacket = new DatagramPacket(new byte[]{(byte)Protocol.RETURN_SERVICES.ordinal()}, 702, InetAddress.getByName(serviceAddressPacket.getAddress().getHostName()),  serviceAddressPacket.getPort());
+            byte[] IDservice = new byte[1];
+            byte[] IP = new byte[4];
+            byte[] port = new byte[2];
+            int i = 0;
+            serviceListPacket.setData(intToBytes(serviceList.size(),1),1,1);
+            serviceAddressPacket.setLength(2+(7*serviceList.size()));
+            for(Service service : serviceList)
+            {
+                IDservice = intToBytes(service.getIDservice(),IDservice.length);
+                IP = InetAddress.getByName(service.getIp()).getAddress();
+                port = intToBytes(service.getPort(),port.length);
+
+                serviceListPacket.setData(IDservice, 2 + 7*i, IDservice.length);
+                serviceListPacket.setData(IP, 3 + 7*i, IP.length);
+                serviceListPacket.setData(port,8 + 7*i,port.length);
+                i++;
+            }
 
     }
     public void sendServiceToClient()
@@ -76,12 +106,23 @@ public class Main {
     }
     //efface le Service de la liste et envoie l'info au autre lieure que le Service n'existe plus
     public void deletService()
-    {}
+    {
+
+    }
     //ajoute le Service à la liste et envoie l'info au autre lieure que le Service est nouveau
-    public void addService()
-    {}
+    public void addService(DatagramPacket addServicePacket)
+    {
+        
+    }
     public void verifExist()
     {}
     public void confirmSub()
     {}
+
+    public static byte[] intToBytes(int x, int n) {
+        byte[] bytes = new byte[n];
+        for (int i = 0; i < n; i++, x >>>= 8)
+            bytes[i] = (byte) (x & 0xFF);
+        return bytes;
+    }
 }
