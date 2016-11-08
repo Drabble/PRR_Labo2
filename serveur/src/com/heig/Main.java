@@ -9,7 +9,7 @@ import java.io.IOException;
 
 /**
  * This class creates a new service server and starts it. The port of the service must be passed as an
- * argument to the program. As well as the list of the linkers
+ * argument to the program. As well as the list of the linkers.
  */
 public class Main {
 
