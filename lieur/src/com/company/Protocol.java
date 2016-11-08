@@ -12,5 +12,7 @@ public enum Protocol {
     ASK_SERVIVE_LIST,
     RETURN_SERVICES,
     ADD_SERVICE,
-    DELETE_SERVICE
+    DELETE_SERVICE,
+    CHECK_DONT_EXIST,
+    I_EXIST
 }
