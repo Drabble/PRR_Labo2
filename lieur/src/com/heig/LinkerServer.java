@@ -89,7 +89,11 @@ public class LinkerServer {
             }
             // In case a client found out that a service was down
             else if (messageType == Protocol.SERVICE_DONT_EXIST.ordinal()) {
-                verifExist(receivePacket, pointToPointSocket);
+                verifExists(receivePacket, pointToPointSocket);
+            }
+            // In case a server tries to subscribe to the client
+            else if (messageType == Protocol.SUB.ordinal()) {
+                serviceSubscribe(receivePacket, pointToPointSocket);
             }
         }
     }
@@ -172,7 +176,7 @@ public class LinkerServer {
      */
     public void sendServiceToClient(DatagramPacket serviceNumberPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
         // Create the packet
-        DatagramPacket servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.ADDRESS_SERVICE.ordinal()}, 702, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
+        DatagramPacket servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.ADDRESS_SERVICE.ordinal()}, 8, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
 
         // Create the buffers that will be sent
         byte[] idService = new byte[1];
@@ -261,7 +265,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void verifExist(DatagramPacket addServicePacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    public void verifExists(DatagramPacket addServicePacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
         //on lis le packet nous disant que le service XX n'estsite pas
         //on lui send un message
 
@@ -278,11 +282,9 @@ public class LinkerServer {
 
         Service serviceLost = new Service(IDService, ip.getHostAddress(), port);
 
-
         pointToPointSocket.setSoTimeout(10000);
         DatagramPacket checkPacket = new DatagramPacket(new byte[]{(byte) Protocol.CHECK_DONT_EXIST.ordinal()}, 1, InetAddress.getByName(serviceLost.getIp()), serviceLost.getPort());
         pointToPointSocket.send(checkPacket);
-
 
         byte[] bufferResponse = new byte[1];
         while (true) {
@@ -304,10 +306,38 @@ public class LinkerServer {
     }
 
     /**
+     * Method used to add a service when it subscribes
      *
+     * @param subscribeServicePacket
+     * @param pointToPointSocket
+     * @throws InterruptedException
+     * @throws IOException
      */
-    public void confirmSub() {
+    public void serviceSubscribe(DatagramPacket subscribeServicePacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+        // Retrieve the data from the packet
+        int idService = subscribeServicePacket.getData()[1];
+        InetAddress ip = subscribeServicePacket.getAddress();
+        int port = subscribeServicePacket.getPort();
+
+        // Create the service and add it to the list
+        Service newService = new Service(idService, ip.getHostAddress(), port);
+        serviceList.add(newService);
+
+        // Add the service on every other linkers
+        for(Linker linker : linkers) {
+            // Create the packet to add the service
+            DatagramPacket servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.ADD_SERVICE.ordinal()}, 8, InetAddress.getByName(linker.getIp()), linker.getPort());
+
+            // Set the packet length to
+            servicePacket.setLength(8);
+
+            // Add the service data to the packet
+            servicePacket.setData(Util.intToBytes(idService, 1), 1, 1);
+            servicePacket.setData(ip.getAddress(), 2, 4);
+            servicePacket.setData(Util.intToBytes(port, 2), 6, 2);
+
+            // Send the packet
+            pointToPointSocket.send(servicePacket);
+        }
     }
-
-
 }

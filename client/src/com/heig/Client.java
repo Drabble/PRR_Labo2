@@ -96,15 +96,6 @@ public class Client {
                 // Wait and ask again for the service
                 Thread.sleep(10000);
             }
-            /*
-             * Transform INetIPAddress to byte array
-              * InetAddress ip = InetAddress.getByName("192.168.2.1");
-                byte[] bytes = ip.getAddress();
-                for (byte b : bytes) {
-                    System.out.println(b & 0xFF);
-                }
-             */
-
         }
     }
 
