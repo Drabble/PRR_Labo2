@@ -61,7 +61,7 @@ public class ServiceServer {
         DatagramPacket linkerConfirmationPacket = new DatagramPacket(buffer, buffer.length);
         pointToPointSocket.receive(linkerConfirmationPacket);
 
-        if(linkerConfirmationPacket.getData()[1] == Protocol.CONFIRM_SUB.ordinal()) {
+        if(linkerConfirmationPacket.getData()[0] == Protocol.CONFIRM_SUB.ordinal()) {
             // Do service forever
             while (true) {
                 // Wait for client request

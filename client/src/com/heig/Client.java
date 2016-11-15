@@ -31,10 +31,8 @@ public class Client {
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
      * TODO : Ajouter les arguments (liste de linkers et port sur lequel on écoute
      *
-     * @throws InterruptedException
-     * @throws IOException
      */
-    public void LinkerServer() throws InterruptedException, IOException {
+    public void Client() {
 
     }
 
@@ -86,6 +84,7 @@ public class Client {
                     // TODO Notify linker
                 }
                 try {
+                    // TODO : TIMEOUT !
                     pointToPointSocket.receive(servicePacket);
                     System.out.println("Echo message received from the service");
                 } catch (IOException e) {
