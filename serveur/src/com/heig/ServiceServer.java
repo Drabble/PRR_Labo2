@@ -53,26 +53,32 @@ public class ServiceServer {
 
         // Subscribe to the linker
         int linkerNumber = rand.nextInt(linkers.length);
-        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte)Protocol.SUB.ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()),  linkers[linkerNumber].getPort());
+        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte) Protocol.SUB.ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
         pointToPointSocket.send(linkerSubscribePacket);
 
         // Wait for confirmation
         byte[] buffer = new byte[1];
         DatagramPacket linkerConfirmationPacket = new DatagramPacket(buffer, buffer.length);
-        pointToPointSocket.receive(linkerConfirmationPacket);
 
-        if(linkerConfirmationPacket.getData()[0] == Protocol.CONFIRM_SUB.ordinal()) {
-            // Do service forever
-            while (true) {
-                // Wait for client request
-                byte[] buffer2 = new byte[4];
-                DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
-                pointToPointSocket.receive(clientPacket);
-
-                // Answer to client request
-                DatagramPacket clientResponsePacket = new DatagramPacket(clientPacket.getData(), clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
-                pointToPointSocket.send(clientResponsePacket);
+        do {
+            try {
+                pointToPointSocket.setSoTimeout(2000);
+                pointToPointSocket.receive(linkerConfirmationPacket);
+            } catch (SocketTimeoutException e) {
+                System.exit(0);
             }
+        } while (linkerConfirmationPacket.getData()[0] == Protocol.CONFIRM_SUB.ordinal());
+
+        // Do service forever
+        while (true) {
+            // Wait for client request
+            byte[] buffer2 = new byte[4];
+            DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
+            pointToPointSocket.receive(clientPacket);
+
+            // Answer to client request
+            DatagramPacket clientResponsePacket = new DatagramPacket(clientPacket.getData(), clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
+            pointToPointSocket.send(clientResponsePacket);
         }
     }
 
