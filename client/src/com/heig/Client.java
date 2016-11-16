@@ -50,6 +50,20 @@ public class Client {
         DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
         System.out.println("Started the socket!");
 
+        byte[] bufferConfirme = new byte[1];
+        DatagramPacket ConfirmationLieur = new DatagramPacket(bufferConfirme, bufferConfirme.length);
+
+        //tant qu'on n'a pas eu de confirmation du lieur, on lance pas le service.
+        do {
+            try {
+                pointToPointSocket.setSoTimeout(2000);
+                pointToPointSocket.receive(ConfirmationLieur);
+            } catch (SocketTimeoutException e) {
+                System.exit(0);
+            }
+        }while(ConfirmationLieur.getData()[0] == Protocol.CONFIRM_SUB.ordinal());
+
+
         while (true) {
             // Ask the linked for service number 0
             int linkerNumber = rand.nextInt(linkers.length);
