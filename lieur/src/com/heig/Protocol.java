@@ -11,7 +11,7 @@ package com.heig;
 public enum Protocol {
     ASK_SERVICE,
     ADDRESS_SERVICE,
-    SERVICE_DONT_EXIST,
+    SERVICE_EXISTE_PAS,
     SUB,
     CONFIRM_SUB,
     ASK_SERVICE_LIST,
