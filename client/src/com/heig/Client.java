@@ -102,7 +102,9 @@ public class Client {
                     // TODO : UTILISER UN AUTRE PORT
                     pointToPointSocket.setSoTimeout(2000);
                     pointToPointSocket.receive(servicePacket);
-                    System.out.println("Echo message received from the service");
+                    if(serviceAddressPacket.getData()[0] == Protocol.REPONSE_AU_SERVICE.ordinal()) {
+                        System.out.println("Echo message received from the service");
+                    }
                 } catch (SocketTimeoutException e) {
                     // TODO Notify linker
                     DatagramPacket servieNoAttient = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 8, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());

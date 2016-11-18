@@ -53,7 +53,7 @@ public class ServiceServer {
 
         // Subscribe to the linker
         int linkerNumber = rand.nextInt(linkers.length);
-        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte) Protocol.SUB.ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
+        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte) Protocol.ABONNEMENT .ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
         pointToPointSocket.send(linkerSubscribePacket);
 
         // Wait for confirmation
@@ -67,7 +67,7 @@ public class ServiceServer {
             } catch (SocketTimeoutException e) {
                 System.exit(0);
             }
-        } while (linkerConfirmationPacket.getData()[0] == Protocol.CONFIRM_SUB.ordinal());
+        } while (linkerConfirmationPacket.getData()[0] == Protocol.CONFIRMATION_ABONNEMENT.ordinal());
 
         // Do service forever
         while (true) {
@@ -75,6 +75,7 @@ public class ServiceServer {
             byte[] buffer2 = new byte[4];
             DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
             pointToPointSocket.receive(clientPacket);
+
 
             // Answer to client request
             DatagramPacket clientResponsePacket = new DatagramPacket(clientPacket.getData(), clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
