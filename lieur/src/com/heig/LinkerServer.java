@@ -242,9 +242,7 @@ public class LinkerServer {
         byte[] portByte = Arrays.copyOfRange(deleteServicePacket.getData(), 8, 9);
         int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
 
-        // Delete the service from the service list if it exists
         Service newService = new Service(IDService, ip.getHostAddress(), port);
-        //TODO verifier si le remove marche si l'objet passé n'est pas une copie de l'objet a supprimer
         serviceList.remove(newService);
     }
 
