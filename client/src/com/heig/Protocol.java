@@ -9,6 +9,8 @@ package com.heig;
  * Defines different messages of the protocol to exchange UDP packets between the client, the server and the linker
  */
 public enum Protocol {
+    CONTACT_SERVICE,
+    REPONSE_AU_SERVICE,
     DEMANDE_DE_SEVICE,
     REPONSE_DEMANDE_DE_SERVICE,
     SERVICE_EXISTE_PAS,
