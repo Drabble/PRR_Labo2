@@ -76,7 +76,13 @@ public class Client {
 
                 // Send the echo message
                 byte[] echoMessage = {1,1,1,1};
-                DatagramPacket servicePacket = new DatagramPacket(echoMessage, echoMessage.length, ip, port);
+
+
+                DatagramPacket servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.CONTACT_SERVICE.ordinal()}, echoMessage.length+2, ip, port);
+                servicePacket.setData(Util.intToBytes(echoMessage.length,1),1,1);
+                servicePacket.setData(echoMessage,2,echoMessage.length);
+
+
                 try {
                     pointToPointSocket.send(servicePacket);
                     System.out.println("Echo message sent to the service");
