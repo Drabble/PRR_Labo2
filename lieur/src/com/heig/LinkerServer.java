@@ -75,8 +75,11 @@ public class LinkerServer {
             // 7 par service avec un max de 100 services)
             System.out.println("while");
 
-            if(!serviceList.isEmpty())
-            System.out.print(serviceList.get(0).getIp());
+            if(!serviceList.isEmpty()) {
+                System.out.println("IP" + serviceList.get(0).getIp());
+                System.out.println("service id " + serviceList.get(0).getIdService());
+                System.out.println("port d'ecoute " + serviceList.get(0).getPort());
+            }
             byte[] buffer = new byte[702];
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
             pointToPointSocket.receive(receivePacket);
@@ -86,8 +89,16 @@ public class LinkerServer {
 
             //byte deffinissant le type de message
             byte messageType = receivePacket.getData()[0];
-
+            byte service = receivePacket.getData()[1];
             System.out.println(messageType);
+            System.out.println("service id " + service);
+
+            byte[] portByte = Arrays.copyOfRange(receivePacket.getData(),2,5);
+            int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
+            System.out.println(port);
+
+
+
 
 
 
