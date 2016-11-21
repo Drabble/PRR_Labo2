@@ -17,14 +17,12 @@ public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
     final Linker[] linkers = {
-            new Linker("127.0.0.1", 7780),
-            new Linker("127.0.0.1", 7781),
-            new Linker("127.0.0.1", 7782)
+            new Linker("192.168.1.41", 1234)
     };
 
     byte idService = 0;
 
-    final int pointToPointPort = 1234; // TODO : Make this an argument
+    final int pointToPointPort = 12345; // TODO : Make this an argument
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -53,7 +51,10 @@ public class ServiceServer {
 
         // Subscribe to the linker
         int linkerNumber = rand.nextInt(linkers.length);
-        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte) Protocol.ABONNEMENT .ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
+        //DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte) Protocol.ABONNEMENT .ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
+        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{(byte) Protocol.ABONNEMENT.ordinal()}, 1, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
+
+
         pointToPointSocket.send(linkerSubscribePacket);
 
         // Wait for confirmation
@@ -62,15 +63,26 @@ public class ServiceServer {
 
         do {
             try {
+                System.out.print("send");
                 pointToPointSocket.setSoTimeout(2000);
+                System.out.print("send1");
                 pointToPointSocket.receive(linkerConfirmationPacket);
+                System.out.print("send2");
+                if(linkerConfirmationPacket.getData()[0] == Protocol.CONFIRMATION_ABONNEMENT.ordinal())
+                {
+                    System.out.println("go tu run");
+                    pointToPointSocket.setSoTimeout(0);
+                    break;
+                }
             } catch (SocketTimeoutException e) {
+                System.out.print("exit");
                 System.exit(0);
             }
         } while (linkerConfirmationPacket.getData()[0] == Protocol.CONFIRMATION_ABONNEMENT.ordinal());
 
         // Do service forever
         while (true) {
+            System.out.print("run");
             // Wait for client request
             byte[] buffer2 = new byte[4];
             DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);

@@ -28,9 +28,6 @@ public class LinkerServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
     final Linker[] linkers = {
-            new Linker("127.0.0.1", 7780),
-            new Linker("127.0.0.1", 7781),
-            new Linker("127.0.0.1", 7782)
     };
 
     final int pointToPointPort = 1234; // TODO : Make this an argument to the main
@@ -59,12 +56,12 @@ public class LinkerServer {
         System.out.println("Started the socket!");
 
         // Setup the service TODO : remove this !
-        Service s1 = new Service(1, "192.186.1.1", 7777);
+        /*Service s1 = new Service(1, "192.186.1.1", 7777);
         Service s2 = new Service(2, "192.186.1.1", 7778);
         Service s3 = new Service(2, "192.186.1.1", 7779);
         serviceList.add(s1);
         serviceList.add(s2);
-        serviceList.add(s3);
+        serviceList.add(s3);*/
 
         // démarrage du lieur et syncronisation avec les autre lieur
         getServiceList(pointToPointSocket);
@@ -76,12 +73,23 @@ public class LinkerServer {
             // un byte pour le type de message
             // un pour le nombre de service,
             // 7 par service avec un max de 100 services)
+            System.out.println("while");
+
+            if(!serviceList.isEmpty())
+            System.out.print(serviceList.get(0).getIp());
             byte[] buffer = new byte[702];
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
             pointToPointSocket.receive(receivePacket);
+            System.out.println("while2");
+
+
 
             //byte deffinissant le type de message
             byte messageType = receivePacket.getData()[0];
+
+            System.out.println(messageType);
+
+
 
             //si le message reçu est une demande de liste de services d'un lieur (lieur -> lieur)
             if (messageType == Protocol.DEMANDE_DE_LISTE_DE_SERVICES.ordinal()) {
@@ -157,6 +165,7 @@ public class LinkerServer {
         }
         //redefinition du time out
         pointToPointSocket.setSoTimeout(0);
+        System.out.println("waiting");
     }
 
     /**
@@ -261,6 +270,8 @@ public class LinkerServer {
         int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
 
         // Ajoute le service à la liste s'il n'existe pas deja
+
+        System.out.println("ajout d'un service");
         Service newService = new Service(idService, ip.getHostAddress(), port);
         // TODO : Verifier si contains marche bien
         if(!serviceList.contains(newService)) {
