@@ -17,7 +17,7 @@ public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
     final Linker[] linkers = {
-            new Linker("192.168.1.41", 1234)
+            new Linker("127.0.0.1", 1234)
     };
 
     byte idService = 1;
@@ -80,9 +80,13 @@ public class ServiceServer {
             DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
             pointToPointSocket.receive(clientPacket);
 
+            System.out.print("recive");
 
+            tosend = new byte[clientPacket.getData().length];
+            tosend[0] = (byte) Protocol.REPONSE_AU_SERVICE.ordinal();
+            System.out.print("send id" + Protocol.REPONSE_AU_SERVICE.ordinal());
             // Answer to client request
-            DatagramPacket clientResponsePacket = new DatagramPacket(clientPacket.getData(), clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
+            DatagramPacket clientResponsePacket = new DatagramPacket(tosend, clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
             pointToPointSocket.send(clientResponsePacket);
         }
     }

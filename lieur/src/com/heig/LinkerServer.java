@@ -7,6 +7,7 @@ package com.heig;
 
 import java.io.IOException;
 import java.net.*;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -90,16 +91,8 @@ public class LinkerServer {
             //byte deffinissant le type de message
             byte messageType = receivePacket.getData()[0];
             byte service = receivePacket.getData()[1];
-            System.out.println(messageType);
+            System.out.println(" message type " + messageType);
             System.out.println("service id " + service);
-
-            byte[] portByte = Arrays.copyOfRange(receivePacket.getData(),2,5);
-            int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
-            System.out.println(port);
-
-
-
-
 
 
             //si le message reçu est une demande de liste de services d'un lieur (lieur -> lieur)
@@ -223,27 +216,52 @@ public class LinkerServer {
      * @throws IOException
      */
     public void sendServiceToClient(DatagramPacket serviceNumberPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
-        // creation du paquet
-        DatagramPacket servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.REPONSE_DEMANDE_DE_SERVICE.ordinal()}, 8, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
+
+
+        DatagramPacket servicePacket;
+
 
         // recupère le service qui a été utilisé le moin récemment
         // TODO : Récupérer le service avec l'id de service correspondant
-        Service service = serviceList.stream().min((a, b) -> a.getLastUse() == null ? -1 : b.getLastUse() == null ? 1 : a.getLastUse().compareTo(b.getLastUse())).get();
-        if(service == null)
+        if(!serviceList.isEmpty()) {
+            Service service = serviceList.stream().min((a, b) -> a.getLastUse() == null ? -1 : b.getLastUse() == null ? 1 : a.getLastUse().compareTo(b.getLastUse())).get();
+            if (service == null) {
+                servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
+
+            } else {
+                byte[] idService = Util.intToBytes(service.getIdService(), 1);
+                byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
+                byte[] port = Util.intToBytes(service.getPort(), 2);
+
+                byte[] tosend = new byte[8];
+                tosend[0] = (byte) Protocol.REPONSE_DEMANDE_DE_SERVICE.ordinal();
+                tosend[1] = (byte) service.getIdService();
+                tosend[2] = ip[0];
+                tosend[3] = ip[1];
+                tosend[4] = ip[2];
+                tosend[5] = ip[3];
+
+                System.out.println("send p" + port[0]);
+                System.out.println("send p" + port[1]);
+                tosend[6] = port[0];
+                tosend[7] = port[1];
+
+                System.out.println("send" + service.getPort());
+
+                servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
+
+                System.out.println("send datagram");
+                //servicePacket.setData(idService, 1, idService.length);
+                //servicePacket.setData(ip, 2, ip.length);
+                //servicePacket.setData(port, 6, port.length);
+
+                // met a jour la date de dernière utilisation du service
+                service.use();
+            }
+        }
+        else
         {
             servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
-
-        }else {
-            byte[] idService = Util.intToBytes(service.getIdService(), 1);
-            byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
-            byte[] port = Util.intToBytes(service.getPort(), 2);
-
-            servicePacket.setData(idService, 1, idService.length);
-            servicePacket.setData(ip, 2, ip.length);
-            servicePacket.setData(port, 6, port.length);
-
-            // met a jour la date de dernière utilisation du service
-            service.use();
         }
         // envoi du paquet
         pointToPointSocket.send(servicePacket);
