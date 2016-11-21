@@ -78,12 +78,11 @@ public class Client {
                 // Get the ip and port
                 System.out.println("REPONSE_DEMANDE_DE_SERVICE");
                 InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceAddressPacket.getData(), 2, 6));
-                byte[] portByte = new byte[2];
 
+                byte[] portByte = new byte[2];
                 portByte[0] = serviceAddressPacket.getData()[7];
                 portByte[1] = serviceAddressPacket.getData()[6];
-
-                final int port = new BigInteger(portByte).intValue();
+                int port = new BigInteger(portByte).intValue();
 
                 // Send the echo message
                 byte[] echoMessage = {1,1,1,1};
@@ -100,12 +99,10 @@ public class Client {
                 System.out.println(ip.getHostAddress());
                 System.out.println(port);
 
-
-                // TODO FIX THIS
-                //port = 12345;
-
+                port = 14604;
 
                 DatagramPacket servicePacket = new DatagramPacket(tosend, echoMessage.length+2, ip, port);
+
 
 
                 try {
@@ -136,15 +133,16 @@ public class Client {
                     tosend = new byte[8];
                     tosend[0] = (byte) Protocol.SERVICE_EXISTE_PAS.ordinal();
                     tosend[1] = (byte) idService;
-                    tosend[2] = echoMessage[0];
-                    tosend[3] = echoMessage[1];
-                    tosend[4] = echoMessage[2];
-                    tosend[5] = echoMessage[3];
+                    tosend[2] = ip.getAddress()[0];
+                    tosend[3] = ip.getAddress()[1];
+                    tosend[4] = ip.getAddress()[2];
+                    tosend[5] = ip.getAddress()[3];
 
+                    tosend[6] = serviceAddressPacket.getData()[6];
+                    tosend[7] = serviceAddressPacket.getData()[7];
+
+                    System.out.print("send verif");
                     DatagramPacket servieNoAttient = new DatagramPacket(tosend, 8, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
-                    servieNoAttient.setData(Util.intToBytes(idService, 1), 1, 1);
-                    servieNoAttient.setData(ip.getAddress(),2,4);
-                    servieNoAttient.setData(Util.intToBytes(port, 2), 6, 2);
 
                     pointToPointSocket.send(servieNoAttient);
                 }

@@ -318,6 +318,8 @@ public class LinkerServer {
      * @throws IOException
      */
     public void verifExists(DatagramPacket serviceNotExistPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+
+        System.out.println("verif");
         // Retrieve service from packet
         int idService = serviceNotExistPacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceNotExistPacket.getData(), 2, 6));
@@ -341,10 +343,16 @@ public class LinkerServer {
             // If wrong type, delete service
             int messageType = serviceResponsePacket.getData()[0];
             if (messageType != (byte) Protocol.J_EXISTE.ordinal()) {
+                System.out.println("throw");
+                DatagramPacket sayNotExist = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, serviceNotExistPacket.getAddress(), serviceNotExistPacket.getPort());
                 removeServiceAndNotifyLinkers(serviceNotReachable, pointToPointSocket);
+                pointToPointSocket.send(sayNotExist);
             }
         } catch (SocketTimeoutException e) {
+            System.out.println("throw");
+            DatagramPacket sayNotExist = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, serviceNotExistPacket.getAddress(), serviceNotExistPacket.getPort());
             removeServiceAndNotifyLinkers(serviceNotReachable, pointToPointSocket);
+            pointToPointSocket.send(sayNotExist);
         }
 
         // redefinition du time out à l'infinie

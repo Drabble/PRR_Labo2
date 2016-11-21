@@ -80,14 +80,21 @@ public class ServiceServer {
             DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
             pointToPointSocket.receive(clientPacket);
 
-            System.out.print("recive");
-
-            tosend = new byte[clientPacket.getData().length];
-            tosend[0] = (byte) Protocol.REPONSE_AU_SERVICE.ordinal();
-            System.out.print("send id" + Protocol.REPONSE_AU_SERVICE.ordinal());
-            // Answer to client request
-            DatagramPacket clientResponsePacket = new DatagramPacket(tosend, clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
-            pointToPointSocket.send(clientResponsePacket);
+            if(clientPacket.getData()[0] == (byte)Protocol.REPONSE_AU_SERVICE.ordinal()) {
+                System.out.print("recive client");
+                tosend = new byte[clientPacket.getData().length];
+                tosend[0] = (byte) Protocol.REPONSE_AU_SERVICE.ordinal();
+                System.out.print("send id" + Protocol.REPONSE_AU_SERVICE.ordinal());
+                // Answer to client request
+                DatagramPacket clientResponsePacket = new DatagramPacket(tosend, clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
+                pointToPointSocket.send(clientResponsePacket);
+            }
+            else
+            {
+                System.out.print("recive test existe");
+                DatagramPacket sayItExist = new DatagramPacket(new byte[]{(byte) Protocol.J_EXISTE.ordinal()}, 1, clientPacket.getAddress(), clientPacket.getPort());
+                pointToPointSocket.send(sayItExist);
+            }
         }
     }
 
