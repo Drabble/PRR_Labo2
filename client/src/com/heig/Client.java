@@ -60,6 +60,7 @@ public class Client {
             DatagramPacket linkerPacket = new DatagramPacket(tosend, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
 
 
+            //TODOajouter un exeption si lieur non attient
             pointToPointSocket.send(linkerPacket);
 
 

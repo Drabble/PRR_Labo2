@@ -23,4 +23,16 @@ public class Util {
             bytes[i] = (byte) (x & 0xFF);
         return bytes;
     }
+
+    public void copyByArray(byte[] dest, byte[] source, int from, int to)
+    {
+        int y = 0;
+        int max = source.length;
+        if(dest.length >= source.length && to < dest.length) {
+            for (int i = from; i < to; i++) {
+                dest[i] = source[y];
+                y++;
+            }
+        }
+    }
 }
