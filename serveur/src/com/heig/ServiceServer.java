@@ -10,8 +10,9 @@ import java.net.*;
 import java.util.Random;
 
 /**
- * A linker server that will handle subscriptions from the services and maintain a list of these services.
- * It will synchronise with the other linkers and answer the clients requests.
+ * Au lancement le service contacte un lieur, si il a une confirmation de la part de ce dernier, le serveur démarre.
+ * Il répond au demandes de client et au verification d'existance des lieurs
+ *
  */
 public class ServiceServer {
 
@@ -67,31 +68,30 @@ public class ServiceServer {
                 pointToPointSocket.setSoTimeout(2000);
                 pointToPointSocket.receive(linkerConfirmationPacket);
             } catch (SocketTimeoutException e) {
-                System.out.print("exit");
+                System.out.print("lieur non attient, le serveur va s'arreter");
                 System.exit(0);
             }
         } while (linkerConfirmationPacket.getData()[0] != Protocol.CONFIRMATION_ABONNEMENT.ordinal());
         pointToPointSocket.setSoTimeout(0);
         // Do service forever
         while (true) {
-            System.out.print("run");
+            System.out.println("run");
             // Wait for client request
             byte[] buffer2 = new byte[4];
             DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
             pointToPointSocket.receive(clientPacket);
 
-            if(clientPacket.getData()[0] == (byte)Protocol.REPONSE_AU_SERVICE.ordinal()) {
-                System.out.print("recive client");
+            if(clientPacket.getData()[0] == (byte)Protocol.CONTACT_SERVICE.ordinal()) {
+                System.out.println("recive client " + clientPacket.getAddress().getHostAddress() + " " + clientPacket.getPort());
                 tosend = new byte[clientPacket.getData().length];
                 tosend[0] = (byte) Protocol.REPONSE_AU_SERVICE.ordinal();
-                System.out.print("send id" + Protocol.REPONSE_AU_SERVICE.ordinal());
                 // Answer to client request
                 DatagramPacket clientResponsePacket = new DatagramPacket(tosend, clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
                 pointToPointSocket.send(clientResponsePacket);
             }
             else
             {
-                System.out.print("recive test existe");
+                System.out.print("Reception de test d'existance");
                 DatagramPacket sayItExist = new DatagramPacket(new byte[]{(byte) Protocol.J_EXISTE.ordinal()}, 1, clientPacket.getAddress(), clientPacket.getPort());
                 pointToPointSocket.send(sayItExist);
             }

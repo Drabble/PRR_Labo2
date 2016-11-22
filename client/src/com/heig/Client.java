@@ -48,7 +48,7 @@ public class Client {
 
 
         DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
-        System.out.println("Demmarage du client");
+        System.out.println("Démarrage du client");
 
         while (true) {
             nombreLieurs = ThreadLocalRandom.current().nextInt(0, max + 1);
