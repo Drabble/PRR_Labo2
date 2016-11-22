@@ -53,7 +53,6 @@ public class Client {
         while (true) {
             nombreLieurs = ThreadLocalRandom.current().nextInt(0, max + 1);
             byte idService = (byte) ThreadLocalRandom.current().nextInt(1, 2 + 1);
-            idService = 1;
 
             System.out.println("le client demande le service " + idService + " au lieur " + nombreLieurs);
 
@@ -111,7 +110,7 @@ public class Client {
 
                     DatagramPacket contactServicePaquet = new DatagramPacket(dataAEnvoyer, messageAEnvoyer.length + 2, ip, port);
 
-                    System.out.println("Echo message sent to the service");
+                    System.out.println("Message envoyé au service");
                     pointToPointSocket.send(contactServicePaquet);
 
                     buffer = new byte[8];
@@ -121,9 +120,8 @@ public class Client {
                         // TODO : UTILISER UN AUTRE PORT
                         pointToPointSocket.setSoTimeout(2000);
                         pointToPointSocket.receive(reponseServicePaquet);
-                        System.out.println("Echor reviceed id packet" + reponseServicePaquet.getData()[0]);
                         if (reponseServicePaquet.getData()[0] == Protocol.REPONSE_AU_SERVICE.ordinal()) {
-                            System.out.println("Echo message received from the service");
+                            System.out.println("Reponse du serveur reçue");
                         }
                     } catch (SocketTimeoutException e) {
                         dataAEnvoyer = new byte[8];
@@ -138,8 +136,8 @@ public class Client {
                         dataAEnvoyer[7] = reponseDemandeDeServicePaquet.getData()[7];
 
                         System.out.print("demande de verification");
-                        DatagramPacket servieNoAttient = new DatagramPacket(dataAEnvoyer, 8, InetAddress.getByName(linkers[nombreLieurs].getIp()), linkers[nombreLieurs].getPort());
-                        pointToPointSocket.send(servieNoAttient);
+                        DatagramPacket serviceNonAttient = new DatagramPacket(dataAEnvoyer, 8, InetAddress.getByName(linkers[nombreLieurs].getIp()), linkers[nombreLieurs].getPort());
+                        pointToPointSocket.send(serviceNonAttient);
                         pointToPointSocket.setSoTimeout(0);
 
                         buffer = new byte[1];
@@ -152,7 +150,6 @@ public class Client {
                     }
                 }
             }
-
             // Wait and ask again for the service
             Thread.sleep(10000);
         }
