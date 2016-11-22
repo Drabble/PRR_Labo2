@@ -56,10 +56,11 @@ public class Client {
             byte[] tosend =new byte[2];
             tosend[0] = (byte) Protocol.DEMANDE_DE_SEVICE.ordinal();
             tosend[1] = idService;
+            // TODO : Faire un random pour choisir le linker
             //DatagramPacket linkerPacket = new DatagramPacket(new byte[]{idService, (byte)Protocol.DEMANDE_DE_SEVICE.ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()),  linkers[linkerNumber].getPort());
             DatagramPacket linkerPacket = new DatagramPacket(tosend, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
 
-
+            // TODO : set Timeout
             pointToPointSocket.send(linkerPacket);
 
 
@@ -99,26 +100,12 @@ public class Client {
                 System.out.println(ip.getHostAddress());
                 System.out.println(port);
 
-                port = 14604;
-
                 DatagramPacket servicePacket = new DatagramPacket(tosend, echoMessage.length+2, ip, port);
 
 
 
-                try {
-                    pointToPointSocket.send(servicePacket);
-                    System.out.println("Echo message sent to the service");
-                } catch (IOException e) {
-                    System.out.println("Service not available");
-                    // TODO Notify linker
-                    DatagramPacket servieNoAttient = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 8, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
-                    servieNoAttient.setData(Util.intToBytes(idService, 1), 1, 1);
-                    servieNoAttient.setData(ip.getAddress(),2,4);
-                    servieNoAttient.setData(Util.intToBytes(port, 2), 6, 2);
-
-                    pointToPointSocket.send(servieNoAttient);
-
-                }
+                pointToPointSocket.send(servicePacket);
+                System.out.println("Echo message sent to the service");
 
                 try {
                     // TODO : UTILISER UN AUTRE PORT

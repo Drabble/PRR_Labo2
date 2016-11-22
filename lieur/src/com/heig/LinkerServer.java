@@ -28,9 +28,10 @@ public class LinkerServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
     final Linker[] linkers = {
+            new Linker("127.0.0.1", 1234)
     };
 
-    final int pointToPointPort = 1234; // TODO : Make this an argument to the main
+    final int pointToPointPort = 12349; // TODO : Make this an argument to the main
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -153,8 +154,15 @@ public class LinkerServer {
                 for (int i = 0; i < nbServices; i++) {
                     int idService = serviceListAddressPacket.getData()[2 + 7 * i];
                     InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceListAddressPacket.getData(), 3 + i * 7, 7 + i * 7));
-                    byte[] portByte = Arrays.copyOfRange(serviceListAddressPacket.getData(), 8 + i * 7, 9 + i * 7);
-                    int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
+                    byte[] portByte = Arrays.copyOfRange(serviceListAddressPacket.getData(), 7 + i * 7, 9 + i * 7);
+                    int port = ((portByte[1] & 0xff) << 8) | (portByte[0] & 0xff);
+
+                    /**
+                     * byte[] portByte = new byte[2];
+                     portByte[0] = serviceAddresspacket.getData()[7];
+                     portByte[1] = serviceListAddressPacket.getData()[6];
+                     int port = new BigInteger(portByte).intValue();
+                     */
 
                     Service service = new Service(idService, ip.getHostAddress(), port);
                     services.add(service);
@@ -177,27 +185,33 @@ public class LinkerServer {
      * @throws IOException
      */
     private void envoiListeServices(DatagramPacket serviceAddressPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
-        // Construction du paquet
-        DatagramPacket serviceListPacket = new DatagramPacket(new byte[]{(byte) Protocol.REPONSE_DEMANDE_LISTE_DE_SERVICES.ordinal()}, 702, InetAddress.getByName(serviceAddressPacket.getAddress().getHostName()), serviceAddressPacket.getPort());
 
         // Définition de la taille du paquet (2 + (le nombre de service * 7))
-        serviceAddressPacket.setLength(2 + (7 * services.size()));
-        serviceListPacket.setData(Util.intToBytes(services.size(), 1), 1, 1);
+        byte[] listeServiceData = new byte[2 + (7 * services.size())];
+        listeServiceData[0] = (byte) Protocol.REPONSE_DEMANDE_LISTE_DE_SERVICES.ordinal();
+        listeServiceData[1] = (byte)services.size();
 
         // Ajout des services au paquet
         int i = 0;
         for (Service service : services) {
             // Retrieve service data
-            byte[] idService = Util.intToBytes(service.getIdService(), 1);
             byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
             byte[] port = Util.intToBytes(service.getPort(), 2);
 
-            serviceListPacket.setData(idService, 2 + 7 * i, idService.length);
-            serviceListPacket.setData(ip, 3 + 7 * i, ip.length);
-            serviceListPacket.setData(port, 8 + 7 * i, port.length);
+            listeServiceData[2 + 7 * i] = (byte)service.getIdService();
+            listeServiceData[3 + 7 * i] = ip[0];
+            listeServiceData[4 + 7 * i] = ip[1];
+            listeServiceData[5 + 7 * i] = ip[2];
+            listeServiceData[6 + 7 * i] = ip[3];
+            System.out.println("TEST : " + service.getPort());
+            listeServiceData[7 + 7 * i] = port[0];
+            listeServiceData[8 + 7 * i] = port[1];
 
             i++;
         }
+
+        // Construction du paquet
+        DatagramPacket serviceListPacket = new DatagramPacket(listeServiceData, listeServiceData.length, InetAddress.getByName(serviceAddressPacket.getAddress().getHostName()), serviceAddressPacket.getPort());
 
         // Envoi du paquet
         pointToPointSocket.send(serviceListPacket);
