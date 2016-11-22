@@ -17,7 +17,7 @@ public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
     final Linker[] linkers = {
-            new Linker("127.0.0.1", 1234)
+            new Linker("127.0.0.1", 12349)
     };
 
     byte idService = 1;
