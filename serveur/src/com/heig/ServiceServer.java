@@ -17,13 +17,13 @@ import java.util.Random;
 public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
-    final Linker[] linkers = {
+    private final Linker[] linkers = {
             new Linker("127.0.0.1", 12349)
     };
 
-    byte idService = 1;
+    private final byte idService = 1;
 
-    final int pointToPointPort = 12345; // TODO : Make this an argument
+    private final int pointToPointPort = 12345; // TODO : Make this an argument
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -43,7 +43,6 @@ public class ServiceServer {
      * @throws InterruptedException
      */
     public void start() throws IOException, InterruptedException {
-        // Variable used to generate random values
         Random rand = new Random();
 
         // Create point to point socket to send messages to the linker

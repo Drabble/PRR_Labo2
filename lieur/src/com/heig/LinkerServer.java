@@ -22,18 +22,18 @@ import java.util.NoSuchElementException;
  */
 public class LinkerServer {
     // List of the services
-    List<Service> services = new ArrayList<>();
+    private List<Service> services = new ArrayList<>();
 
     // TODO : TRANSLATE TO FRENCH !!
 
     // TODO: FAIRE DE PROTOCOL UTIL LINKER SERVICE UN LIBRAIRIE PARTAGée
 
     // List of the other linkers TODO : remove the values and set it with the args
-    final Linker[] linkers = {
+    private final Linker[] linkers = {
             new Linker("127.0.0.1", 1234)
     };
 
-    final int pointToPointPort = 12349; // TODO : Make this an argument to the main
+    private final int pointToPointPort = 12349; // TODO : Make this an argument to the main
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -227,7 +227,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void envoiServiceAuClient(DatagramPacket serviceNumberPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    private void envoiServiceAuClient(DatagramPacket serviceNumberPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
         DatagramPacket servicePacket;
 
         // recupère le service qui a été utilisé le moin récemment
@@ -253,7 +253,6 @@ public class LinkerServer {
             // Sinon on lui retourne le service trouvé
             else {
                 // Récupère la liste des
-                byte[] idService = Util.intToBytes(service.getIdService(), 1);
                 byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
                 byte[] port = Util.intToBytes(service.getPort(), 2);
 
@@ -291,7 +290,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void deleteService(DatagramPacket deleteServicePacket) throws InterruptedException, IOException {
+    private void deleteService(DatagramPacket deleteServicePacket) throws InterruptedException, IOException {
         int IDService = deleteServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(deleteServicePacket.getData(), 2, 6));
         byte[] portByte = new byte[2];
@@ -310,7 +309,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void addService(DatagramPacket addServicePacket) throws InterruptedException, IOException {
+    private void addService(DatagramPacket addServicePacket) throws InterruptedException, IOException {
         // Retrieve data from packet
         int idService = addServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(addServicePacket.getData(), 2, 6));
@@ -338,7 +337,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void verifExists(DatagramPacket serviceNotExistPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    private void verifExists(DatagramPacket serviceNotExistPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
 
         System.out.println("verif");
         // Retrieve service from packet
@@ -388,7 +387,7 @@ public class LinkerServer {
      * @param pointToPointSocket
      * @throws IOException
      */
-    public void removeServiceAndNotifyLinkers(Service service, DatagramSocket pointToPointSocket) throws IOException {
+    private void removeServiceAndNotifyLinkers(Service service, DatagramSocket pointToPointSocket) throws IOException {
 
         byte tosend[] = new byte[8];
         services.remove(service);
@@ -423,7 +422,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void serviceSubscribe(DatagramPacket subscribeServicePacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    private void serviceSubscribe(DatagramPacket subscribeServicePacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
         // recuperation des datas du parquet
         int idService = subscribeServicePacket.getData()[1];
         InetAddress ip = subscribeServicePacket.getAddress();
