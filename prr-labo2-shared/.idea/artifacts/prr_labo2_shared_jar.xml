@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="prr-labo2-shared:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/prr_labo2_shared_jar</output-path>
+    <root id="archive" name="prr-labo2-shared.jar">
+      <element id="module-output" name="prr-labo2-shared" />
+    </root>
+  </artifact>
+</component>
