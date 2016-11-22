@@ -61,6 +61,7 @@ public class Client {
             DatagramPacket linkerPacket = new DatagramPacket(tosend, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
 
             // TODO : set Timeout
+            //TODO ajouter un exeption si lieur non attient
             pointToPointSocket.send(linkerPacket);
 
 
@@ -139,5 +140,4 @@ public class Client {
             }
         }
     }
-
 }
