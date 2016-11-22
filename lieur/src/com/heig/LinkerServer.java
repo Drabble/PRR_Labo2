@@ -11,6 +11,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
  * Le lieur permet de faire le lien entre les services et les client. Il contient la liste des services actifs
@@ -234,11 +235,17 @@ public class LinkerServer {
 
         // Récupère le service qui a été utilisé le moin récemment si la liste des services n'est pas vide
         if(!services.isEmpty()) {
-            // On récupère le service qui a été utilisé il y a le plus longtemps et qui a le bon id
-            Service service = services.stream().filter(s -> s.getIdService() == serviceNumberPacket.getData()[1])
-                    .min((a, b) -> a.getLastUse() == null ? -1 : b.getLastUse() == null ? 1 : a.getLastUse()
-                    .compareTo(b.getLastUse())).get();
-
+            Service service;
+            try {
+                // On récupère le service qui a été utilisé il y a le plus longtemps et qui a le bon id
+                 service = services.stream().filter(s -> s.getIdService() == serviceNumberPacket.getData()[1])
+                        .min((a, b) -> a.getLastUse() == null ? -1 : b.getLastUse() == null ? 1 : a.getLastUse()
+                                .compareTo(b.getLastUse())).get();
+            }
+            catch (NoSuchElementException e)
+            {
+                service = null;
+            }
             // Si on a trouvé aucun services correspondant on l'annonce au client
             if (service == null) {
                 servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
