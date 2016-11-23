@@ -6,16 +6,12 @@
 - Concevoir et symplifier une architecture repartie.
 - Analyser la problématique à un lieur de service.
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Enoncé
 
 Dans ce laboratoire il est question e réaliser un lieur redondant entre des clients et serveurs d'application. 
 L'objectif de lieur étant d'associer un client à un service fourni par l'un des serveurs d'application disponible.
 
-```
-Give examples
-```
 
 ### Comportement des clients
 
