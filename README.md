@@ -9,7 +9,7 @@
 
 ### Enoncé
 
-Dans ce laboratoire il est question e réaliser un lieur redondant entre des clients et serveurs d'application. 
+Dans ce laboratoire il est question e réaliser un lieur redondant entre des clients et serveurs d'application.
 L'objectif de lieur étant d'associer un client à un service fourni par l'un des serveurs d'application disponible.
 
 
@@ -20,7 +20,7 @@ Par la suite il pourra alors utiliser l'adresse obténu pour reclamer directemen
 
 ### Comportement des serveurs
 
-Lors du demarrage, tout serveur s'inscrit auprès d'un lieur en lui transmettant son adresse IP, son port de service 
+Lors du demarrage, tout serveur s'inscrit auprès d'un lieur en lui transmettant son adresse IP, son port de service
 ainsi que le type du service rendu.
 
 
@@ -35,4 +35,6 @@ Pour tester le bon fonctionnement de l'application obténue, les tests suivantes
 * Le lieur doit repondre uniquement aux service existants;
 * Un client doit notifier un lieu d'un service non disponible;
 * Après notification d'un client lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs
-* Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs;
+* Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs
+* Deux clients se connectent l'un apres l'autre (1 sec d'intervalle ) à un lieur pour l'informer que le service X est down (crash probable du au fait que le port d'ecoute du lieur sera occupé)
+* client fait une demande de service au lieur alors que celui si est en verification d'existance d'un autre service.
