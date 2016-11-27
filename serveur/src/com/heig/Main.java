@@ -10,9 +10,8 @@ import java.util.ArrayList;
 
 /**
  * Cette classe permet de créer un nouveau serveur de service echo et de le démarrer.
- * L'ip, le port, l'id du service et la liste des lieurs doit être passé en paramêtre à l'appel du programme.
  *
- * Pour appeler le programme serveur, il faut lui passer en paramêtre son port, l'id du service qu'il va servire
+ * Pour appeler le programme serveur, il faut lui passer en paramêtre son port, l'id du service qu'il va fournir
  * et la liste des lieurs
  *
  * Par example :
@@ -22,7 +21,7 @@ import java.util.ArrayList;
 public class Main {
 
     /**
-     * Création d'un nouveau service qui va écouter sur le port spécifié et se souscrire à un lieur
+     * Création et démarrage d'un nouveau du serveur de service.
      *
      * @param args
      * @throws InterruptedException

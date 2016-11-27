@@ -348,8 +348,6 @@ public class LieurServeur {
      */
     private void verifServiceExiste(DatagramPacket serviceNotExistPacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
         // Création d'une connexion point à point
-
-        //TODO faire une constante au lieux du 10 ?
         DatagramSocket verifServiceSocket = new DatagramSocket(portVerification);
 
         // Récupération du service depuis le packet
@@ -372,7 +370,6 @@ public class LieurServeur {
             // on le supprime et notifie les autres lieurs
             DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
             verifServiceSocket.setSoTimeout(2000);
-            //TODO admetons le cas suivant : un lieur fait la verification, mais entre temps il recoit une demande d'un client
             verifServiceSocket.receive(serviceResponsePacket);
 
             // If wrong type, delete service

@@ -10,17 +10,18 @@ import java.net.*;
 import java.util.Random;
 
 /**
- * Au lancement le service contacte un lieur, si il a une confirmation de la part de ce dernier, le serveur démarre.
- * Il répond au demandes de client et au verification d'existance des lieurs
- *
+ * Au lancement le serveur contacte un lieur et s'il a une confirmation de la part de ce dernier, le serveur démarre.
+ * Il répond aux demandes des clients et au verification d'existance des lieurs.
+ * La taille maximale d'une requête d'un client est de 1000 bytes.
  */
 public class ServiceServeur {
     private final Lieur[] lieurs; // Liste de tous les lieurs
     private final int idService;  // Id du service fourni
     private final int port;       // Port utilisé pour la réception des paquets point à poinr
+    private final int tailleMaxRequete = 1000; // Taille maximum d'une requête d'un client au serveur
 
     /**
-     * Création d'un nouveau lieur avec son id, son ip, son port et la liste des lieurs
+     * Création d'un nouveau serveur de service avec son id, son ip, son port et la liste des lieurs
      *
      * @throws InterruptedException
      * @throws IOException
@@ -33,7 +34,7 @@ public class ServiceServeur {
 
     /**
      * Démarre le serveur de service. Il va se souscrire à un lieur et faire son service d'echo lors de la réception
-     * de requêtes.
+     * de requêtes. Il va également répondre au requête
      *
      * @throws IOException
      * @throws InterruptedException
@@ -79,14 +80,14 @@ public class ServiceServeur {
         while (true) {
             System.out.println("Attente d'une nouvelle demande d'un client");
 
-            // Wait for client request, taille maximal d'un demande: 1000 bytes
-            byte[] requeteBuffer = new byte[1000];
+            // Attente d'un requête, taille maximal d'un demande: 1000 bytes
+            byte[] requeteBuffer = new byte[tailleMaxRequete];
             DatagramPacket clientPacket = new DatagramPacket(requeteBuffer, requeteBuffer.length);
             pointAPointSocket.receive(clientPacket);
 
             // Si c'est une requête au service d'echo
             if(clientPacket.getData()[0] == (byte)Protocole.CONTACT_SERVICE.ordinal()) {
-                System.out.println("Réception d'une nouvelle demande du client " +
+                System.out.println("Reception d'une nouvelle demande du client " +
                                    clientPacket.getAddress().getHostAddress() + " " + clientPacket.getPort());
 
                 // Création du paquet de réponse

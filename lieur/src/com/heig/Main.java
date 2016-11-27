@@ -2,15 +2,6 @@
  * Project: Labo02
  * Authors: Antoine Drabble & Simon Baehler
  * Date: 08.11.2016
- * Rapport: We defined a protocol......
- *          We limit to 100 the number of service per linker (buffer size is 702 = 100 services + protocol type + number of services)
- *
- * Pour appeler le programme lieur, il faut lui passer en paramêtre son port principal, son port pour la vérification de l'existence
- * d'un serveur et la listes des autres lieurs
- *
- * Par example :
- *
- * java serveur.jar 1111 1112 127.0.0.1 2222 127.0.0.1 3333
  */
 package com.heig;
 
@@ -19,6 +10,13 @@ import java.util.ArrayList;
 
 /**
  * Cette classe permet de créer un nouveau lieur et de le démarrer.
+ *
+ * Pour appeler le programme lieur, il faut lui passer en paramêtre son port principal, son port pour la vérification de l'existence
+ * d'un serveur et la listes des autres lieurs
+ *
+ * Par example :
+ *
+ * java serveur.jar 1111 1112 127.0.0.1 2222 127.0.0.1 3333
  */
 public class Main {
 
