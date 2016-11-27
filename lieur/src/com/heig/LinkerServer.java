@@ -33,11 +33,13 @@ public class LinkerServer {
     // TODO : Renommer tableau linkers
     // TODO : FAIRE LES TESTS et le rapport et les commentaires
     // List of the other linkers TODO : remove the values and set it with the args
-    private final Linker[] linkers = {
+    /*private final Linker[] linkers = {
             new Linker("127.0.0.1", 1111)
     };
+    private final int pointToPointPort = 2222; // TODO : Make this an argument to the main */
 
-    private final int pointToPointPort = 2222; // TODO : Make this an argument to the main
+    private List<Pair<String, Integer>> linkers;
+    private final int pointToPointPort;
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -48,6 +50,23 @@ public class LinkerServer {
      */
     public void LinkerServer(){
 
+    }
+
+    /**
+     * Constructeur sans paramètre
+     */
+    public LinkerServer(){
+
+    }
+
+    /**
+     * Constructeur avec paramètres
+     * @param addressIP
+     * @param port
+     */
+    public  LinkerServer(List<Pair<String, Integer>> linkers, int portToPointPort){
+        this.linkers = linkers;
+        this.pointToPointPort = portToPointPort;
     }
 
     /**
@@ -120,9 +139,9 @@ public class LinkerServer {
         System.out.println("Reception de la liste des services");
 
         // Parcourir la liste des linkers jusqu'à trouver un linker up
-        for (Linker linker : linkers) {
+        for (Pair<String, Integer> linker : linkers) {
             // Création du paquet de demande
-            DatagramPacket linkerPacket = new DatagramPacket(new byte[]{(byte) Protocol.DEMANDE_DE_LISTE_DE_SERVICES.ordinal()}, 1, InetAddress.getByName(linker.getIp()), linker.getPort());
+            DatagramPacket linkerPacket = new DatagramPacket(new byte[]{(byte) Protocol.DEMANDE_DE_LISTE_DE_SERVICES.ordinal()}, 1, InetAddress.getByName(linker.getLeft()), linker.getRight());
             pointAPointSocket.send(linkerPacket);
 
             // Création du paquet pour la récéption de la liste des services
@@ -401,9 +420,9 @@ public class LinkerServer {
         tosend[6] = port[0];
         tosend[7] = port[1];
 
-        for(Linker linker : linkers) {
+        for(Pair<String, Integer> linker : linkers) {
             // creation du paquet
-            DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(linker.getIp()), linker.getPort());
+            DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(linker.getLeft(), linker.getRight());
             // envoi du paquet
             pointAPointSocket.send(servicePacket);
         }
@@ -447,9 +466,9 @@ public class LinkerServer {
         System.out.println("Notification aux autres lieurs de l'ajout du service");
 
         // Envoi de l'information aux autres lieurs
-        for(Linker linker : linkers) {
+        for(Pair<String, Integer> linker : linkers) {
             // Création du paquet
-            DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(linker.getIp()), linker.getPort());
+            DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(linker.getLeft()), linker.getRight());
             // Envoi du paquet
             pointAPointSocket.send(servicePacket);
         }

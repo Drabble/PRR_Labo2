@@ -17,14 +17,17 @@ import java.util.Random;
 public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
-    private final Linker[] linkers = {
+  /*  private final Linker[] linkers = {
             new Linker("127.0.0.1", 1111),
             new Linker("127.0.0.1", 2222)
     };
+    private final int pointToPointPort = 12347; // TODO : Make this an argument
+    */
 
     private final byte idService = 1;
 
-    private final int pointToPointPort = 12347; // TODO : Make this an argument
+    private List<Pair<String, Integer>> linkers;
+    private final int pointToPointPort ;
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -33,9 +36,11 @@ public class ServiceServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public ServiceServer(){
-
+    public ServiceServer(List<Pair<String, Integer>> linkers, int pointToPointPort){
+        this.linkers = linkers;
+        this.pointToPointPort = pointToPointPort;
     }
+
 
     /**
      * Starts the linker. It will begin by synchronising with another linker than it will answer to requests
@@ -53,11 +58,12 @@ public class ServiceServer {
 
         // TODO : EST-CE qu'on essaie de se lier à tout les lieurs plutôt qu'un aléatoire ?
         // Souscription à un lieur aléatoire dans la liste des lieurs
-        int linkerNumber = rand.nextInt(linkers.length);
+        int linkerNumber = rand.nextInt(linkers.length); // ok
         byte[] souscriptionBuffer = {(byte) Protocol.ABONNEMENT.ordinal(), idService};
         System.out.println("Tentative de souscription au lieur:");
-        System.out.println(linkers[linkerNumber]);
-        DatagramPacket linkerSubscribePacket = new DatagramPacket(souscriptionBuffer, souscriptionBuffer.length, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
+        Pair<String, Integer> linker = linkers.get(linkerNumber);
+        System.out.println(linker.getLeft() + ":" + linker.getRight());
+        DatagramPacket linkerSubscribePacket = new DatagramPacket(souscriptionBuffer, souscriptionBuffer.length, InetAddress.getByName(linker.getLeft()), linker.getRight());
         pointToPointSocket.send(linkerSubscribePacket);
 
         // Attente de la confirmation du lieur

@@ -16,15 +16,18 @@ import java.util.Random;
 public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
-    final Linker[] linkers = {
+   /* final Linker[] linkers = {
             new Linker("127.0.0.1", 7780),
             new Linker("127.0.0.1", 7781),
             new Linker("127.0.0.1", 7782)
     };
+    final int pointToPointPort = 1234; // TODO : Make this an argument
+    */
 
     byte idService = 1;
 
-    final int pointToPointPort = 1234; // TODO : Make this an argument
+    private List<Pair<String, Integer>> linkers;
+    private final int pointToPointPort ;
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -33,8 +36,9 @@ public class ServiceServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void LinkerServer() throws InterruptedException, IOException {
-
+    public ServiceServer(List<Pair<String, Integer>> linkers, int pointToPointPort){
+        this.linkers = linkers;
+        this.pointToPointPort = pointToPointPort;
     }
 
     /**
@@ -53,7 +57,8 @@ public class ServiceServer {
 
         // Subscribe to the linker
         int linkerNumber = rand.nextInt(linkers.length);
-        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte)Protocol.SUB.ordinal()}, 2, InetAddress.getByName(linkers[linkerNumber].getIp()),  linkers[linkerNumber].getPort());
+        Pair<String, Integer> linker = linkers.get(linkerNumber);
+        DatagramPacket linkerSubscribePacket = new DatagramPacket(new byte[]{idService, (byte)Protocol.SUB.ordinal()}, 2, InetAddress.getByName(linker.getLeft()),  linker.getRight());
         pointToPointSocket.send(linkerSubscribePacket);
 
         // Wait for confirmation

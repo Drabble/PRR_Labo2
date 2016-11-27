@@ -20,14 +20,18 @@ import java.util.concurrent.ThreadLocalRandom;
 public class Client {
 
     // List of the other linkers TODO : remove the values and set it with the args
-    private final Linker[] linkers = {
+   /* private final Linker[] linkers = {
             new Linker("127.0.0.1", 1111),
             new Linker("127.0.0.1", 2222)
     };
+    final int pointToPointPort = 12342;*/
+
+    private List<Pair<String, Integer>> linkers;
+    final int pointToPointPort;
 
     final int idService = 1;
 
-    final int pointToPointPort = 12342;
+
 
 
     /**
@@ -36,6 +40,23 @@ public class Client {
      */
     public void Client() {
 
+    }
+
+    /**
+     * Construteur sans paramètre
+     */
+    public Client(){
+
+    }
+
+    /**
+     * Constructeur avec parametres
+     * @param linkers liste ports et adress ip des likers en cours d'exécution
+     * @param pointToPointPort
+     */
+    public Client(List<Pair<String, Integer>> linkers, int pointToPointPort){
+        this.linkers = linkers;
+        this.pointToPointPort = pointToPointPort;
     }
 
     /**
@@ -51,14 +72,14 @@ public class Client {
         System.out.println("Démarrage du client");
 
         while (true) {
-            Linker lieur = linkers[ThreadLocalRandom.current().nextInt(0, linkers.length)];
+            Pair<String, Integer> lieur = linkers.get(ThreadLocalRandom.current().nextInt(0, linkers.length));
             System.out.println("Le client va demander le service" + idService + " au lieur:");
-            System.out.println(lieur);
+            System.out.println(lieur.getLeft() + ":" + lieur.getRight());
 
             byte[] demandeServiceBuffer = new byte[2];
             demandeServiceBuffer[0] = (byte) Protocol.DEMANDE_DE_SEVICE.ordinal();
             demandeServiceBuffer[1] = idService;
-            DatagramPacket demandeDeServicePaquet = new DatagramPacket(demandeServiceBuffer, 2, InetAddress.getByName(lieur.getIp()), lieur.getPort());
+            DatagramPacket demandeDeServicePaquet = new DatagramPacket(demandeServiceBuffer, 2, InetAddress.getByName(lieur.getLeft()), lieur.getRight());
 
             pointToPointSocket.send(demandeDeServicePaquet);
 

@@ -60,6 +60,20 @@ public class Linker {
     }
 
     /**
+     * Cette fonction permet de lancer un linker en passant en ligne de commande ces paramètre
+     * @param args le tableau contenant l'adresse ip et le port du linker
+     */
+    public static void main(String...args){
+        if(args.length != 2){
+            System.out.println("You must privide 2 parameters");
+            System.exit (1);
+        }
+        String ip = args[0];
+        int port = Integer.parseInt(args[1]);
+        new Linker(ip, port);
+    }
+
+    /**
      * Convert the linker to string
      *
      * @return

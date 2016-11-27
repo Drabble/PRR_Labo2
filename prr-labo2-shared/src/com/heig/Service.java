@@ -92,6 +92,20 @@ public class Service {
     public Date getLastUse() {
         return lastUse;
     }
+    /**
+     * Cette fonction permet de lancer un service en passant en ligne de commande ces paramètre
+     * @param args le tableau contenant l'id, l'adresse ip et le port du service
+     */
+    public static void main(String...args){
+        if(args.length != 3){
+            System.out.println("You must privide 3 parameters");
+            System.exit (1);
+        }
+        String ip = args[0];
+        int port = Integer.parseInt(args[1]);
+        int id = Integer.parseInt(args[2]);
+        new Service(id, ip, port);
+    }
 
     /**
      * Set the lastUse date to the current time
