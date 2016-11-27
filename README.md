@@ -31,7 +31,7 @@ Ce paquet est envoyé quand nous voulons faire une requête à un service.
 il est constitué de la manière suivante : 
  > [type de paquet][longueur du message][message]
 
-##### REPONSE_AU_SERVICE
+##### REPONSE_DU_SERVICE
 Réponse du service questionné.
 Envoyé après réception de <strong>« CONTACT_SERVICE »</strong>
 il est constitué de la manière suivante : 
@@ -85,7 +85,7 @@ Ce paquet est envoyé par un lieur vers les autre lieur après réception du paq
 Il est constitué de la manière suivante :
  > [type de paquet][type de service][IP du service][port du service]
 
-##### DELETE_SERVICE
+##### SUPPRESSION_SERVICE
 Ce paquet est envoyé par l’émission du paquet <strong>« VERIFIE_N_EXISTE_PAS »</strong> qui n'a pas donné de réponse <strong>« J_EXISTE »</strong>. Ce paquet est envoyé au autres lieurs pour leur dire de supprimer le service incriminé.
 Il est constitué de la manière suivante :
  > [type de paquet][type de service][IP du service][port du service]
