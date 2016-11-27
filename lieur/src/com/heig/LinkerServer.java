@@ -83,9 +83,8 @@ public class LinkerServer {
 
 
             System.out.println("Liste actuelle");
-            for(int i = 0 ; i< services.size() ; i++)
-            {
-                System.out.println(services.get(i));
+            for (Service service : services) {
+                System.out.println(service);
             }
 
 
@@ -432,8 +431,8 @@ public class LinkerServer {
         }
         System.out.println("");
         System.out.println("Apres");
-        for(int i = 0 ; i< services.size() ; i++) {
-            System.out.println(services.get(i));
+        for (Service service1 : services) {
+            System.out.println(service1);
         }
 
 
