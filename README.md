@@ -32,11 +32,10 @@ Le tableau suivant présente les tests qui seront effectués.
 | --- | --- | --- |
 | Un lieur doit être obténu aléatoirement à partir d'une liste | succés | Aucun |
 | Un lieur ou un serveur doit être redemarré aussitôt qu'il est tombé en panne  | - | Non pris en compte, redemarrage manuel |
-| Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles   | succes | lancement du 1er lieur, lancment du serveur, lancment du second lieur. Message : <p> Nouveau service reçu:
-Service: id 1,ip 127.0.0.1, port 12347 |
-| Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur   |  |  |
+| Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles   | succes | lancement du 1er lieur, lancment du serveur, lancment du second lieur. Message : <p> Nouveau service reçu:Service: id 1,ip 127.0.0.1, port 12347|
+| Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur   | succes | le client s'arrête si le lieur ne connais pas le service demandé |
 | Le lieur doit repondre uniquement aux service existants   |  |  |
-| Un client doit notifier un lieu d'un service non disponible   |  |  |
+| Un client doit notifier un lieu d'un service non disponible   | succes |  |
 | Après notification d'un client lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs   |  |  |
 |  Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs   |  |  |
 | Deux clients se connectent l'un apres l'autre (1 sec d'intervalle ) à un lieur pour l'informer que le service X est down (crash probable du au fait que le port d'ecoute du lieur sera occupé)   |  |  |
