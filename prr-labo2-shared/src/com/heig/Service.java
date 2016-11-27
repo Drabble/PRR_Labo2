@@ -99,4 +99,13 @@ public class Service {
     public void use() {
         this.lastUse = new Date();
     }
+
+    /**
+     * Convert the service to string
+     *
+     * @return
+     */
+    public String toString() {
+        return "Service: id " + idService + ", ip " + ip + ", port " + port;
+    }
 }

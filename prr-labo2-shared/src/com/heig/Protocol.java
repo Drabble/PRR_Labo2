@@ -10,7 +10,7 @@ package com.heig;
  */
 public enum Protocol {
     CONTACT_SERVICE,
-    REPONSE_AU_SERVICE,
+    REPONSE_AU_SERVICE, // TODO : REPONSE_DE_SERVICE
     DEMANDE_DE_SEVICE,
     REPONSE_DEMANDE_DE_SERVICE,
     SERVICE_EXISTE_PAS,
@@ -19,7 +19,15 @@ public enum Protocol {
     DEMANDE_DE_LISTE_DE_SERVICES,
     REPONSE_DEMANDE_LISTE_DE_SERVICES,
     AJOUT_SERVICE,
-    DELETE_SERVICE,
+    DELETE_SERVICE, // TODO: SUPPRESSION_SERVICE
     VERIFIE_N_EXISTE_PAS,
-    J_EXISTE
+    J_EXISTE;
+
+    public static String getByOrdinale(int ordinale) {
+        for(Protocol e : values()) {
+            if(e.ordinal() == ordinale) return e.getName();
+        }
+        return null;
+    }
+    public String getName() { return name(); }
 }

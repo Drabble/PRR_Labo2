@@ -19,21 +19,25 @@ import java.util.NoSuchElementException;
  * Une fois démarré, il serra possible aux services qui démarré d'indiquer leur existance au lieur, le lieur
  * informera par la suite l'existance de ce service aux autres lieurs.
  * Il a aussi pour tache de verfier si un service est toujours actif si un client se pleind.
+ *
+ * Le linkerServer va utiliser le port précisé pour toutes les requêtes et va utiliser le port précisé + 1 pour
+ * effectuer le test d'existence d'un service.
  */
 public class LinkerServer {
     // List of the services
     private List<Service> services = new ArrayList<>();
 
-    // TODO : TRANSLATE TO FRENCH !!
 
-    // TODO: FAIRE DE PROTOCOL UTIL LINKER SERVICE UN LIBRAIRIE PARTAGée
-
+    // TODO : RENOMMER certain nom du protocol
+    // TODO : Renommer toutes les classes (aussi librairies et client + services) en français
+    // TODO : Renommer tableau linkers
+    // TODO : FAIRE LES TESTS et le rapport et les commentaires
     // List of the other linkers TODO : remove the values and set it with the args
     private final Linker[] linkers = {
-            new Linker("127.0.0.1", 1234)
+            new Linker("127.0.0.1", 1111)
     };
 
-    private final int pointToPointPort = 12349; // TODO : Make this an argument to the main
+    private final int pointToPointPort = 2222; // TODO : Make this an argument to the main
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -48,29 +52,22 @@ public class LinkerServer {
 
     /**
      * Démarrage du lieur. Au démarrage le lieur va questionner les autres lieur un à un pour obtenir une liste de
-     * service. Il va aussi répondre aux requetes des clients
+     * service. Il va aussi répondre aux requêtes des clients
      *
      * @throws IOException
      * @throws InterruptedException
      */
     public void demarrer() throws IOException, InterruptedException {
         // Création d'une connexion pointToPoint
-        DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
-        System.out.println("Started the socket!");
+        DatagramSocket pointAPointSocket = new DatagramSocket(pointToPointPort);
+        System.out.println("Démarrage du lieur");
 
         // Démarrage du lieur et syncronisation avec les autre lieur
-        recupererListeServices(pointToPointSocket);
+        recupererListeServices(pointAPointSocket);
 
         // Traitement de toutes les requêtes reçues
         while (true) {
             System.out.println("Attente d'une nouvelle demande...");
-
-            // TODO : supprimer ce bout
-            if(!services.isEmpty()) {
-                System.out.println("IP" + services.get(0).getIp());
-                System.out.println("service id " + services.get(0).getIdService());
-                System.out.println("port d'ecoute " + services.get(0).getPort());
-            }
 
             // Réception de la requête, taille max de 702 (le message le plus grand est celui d'envoi de la liste de services,
             // un byte pour le type de message, un pour le nombre de service et 7 par service avec un max de 100 services)
@@ -78,38 +75,36 @@ public class LinkerServer {
             // dans la méthode recupererListeService
             byte[] buffer = new byte[702];
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
-            pointToPointSocket.receive(receivePacket);
+            pointAPointSocket.receive(receivePacket);
             System.out.println("Nouvelle demande recue");
 
             // Récupération du type de message
             byte messageType = receivePacket.getData()[0];
-            byte service = receivePacket.getData()[1]; // TODO : what if service not specified ?? à enlever
-            System.out.println("Message type " + messageType);
-            System.out.println("Service id " + service);
+            System.out.println("Type de message: " + Protocol.getByOrdinale(messageType));
 
             // Si le message reçu est une demande de liste de services d'un lieur (lieur -> lieur)
             if (messageType == Protocol.DEMANDE_DE_LISTE_DE_SERVICES.ordinal()) {
-                envoiListeServices(receivePacket, pointToPointSocket);
+                envoiListeServices(receivePacket, pointAPointSocket);
             }
             // Si le message est une demande de service d'un client (client -> lieur)
             else if(messageType == Protocol.DEMANDE_DE_SEVICE.ordinal()){
-                envoiServiceAuClient(receivePacket, pointToPointSocket);
+                envoiServiceAuClient(receivePacket, pointAPointSocket);
             }
             // Ajout d'un nouveau service de la part d'un lieur (lieur -> lieur)
             else if (messageType == Protocol.AJOUT_SERVICE.ordinal()) {
-                addService(receivePacket);
+                ajoutService(receivePacket);
             }
             // Suppression d'un service (lieur -> lieur)
             else if (messageType == Protocol.DELETE_SERVICE.ordinal()) {
-                deleteService(receivePacket);
+                suppressionService(receivePacket);
             }
             // Si un client n'a pas trouvé le service ( client -> lieur )
             else if (messageType == Protocol.SERVICE_EXISTE_PAS.ordinal()) {
-                verifExists(receivePacket, pointToPointSocket);
+                verifServiceExiste(receivePacket, pointAPointSocket);
             }
             // Si un service veut s'abonner à un lieur
             else if (messageType == Protocol.ABONNEMENT.ordinal()) {
-                serviceSubscribe(receivePacket, pointToPointSocket);
+                souscriptionService(receivePacket, pointAPointSocket);
             }
         }
     }
@@ -117,18 +112,18 @@ public class LinkerServer {
     /**
      * Méthode qui permet la synchronisation du nouveau lieur
      *
-     * @param pointToPointSocket
+     * @param pointAPointSocket
      * @throws InterruptedException
      * @throws IOException
      */
-    private void recupererListeServices(DatagramSocket pointToPointSocket) throws IOException {
+    private void recupererListeServices(DatagramSocket pointAPointSocket) throws IOException {
         System.out.println("Reception de la liste des services");
 
         // Parcourir la liste des linkers jusqu'à trouver un linker up
         for (Linker linker : linkers) {
             // Création du paquet de demande
             DatagramPacket linkerPacket = new DatagramPacket(new byte[]{(byte) Protocol.DEMANDE_DE_LISTE_DE_SERVICES.ordinal()}, 1, InetAddress.getByName(linker.getIp()), linker.getPort());
-            pointToPointSocket.send(linkerPacket);
+            pointAPointSocket.send(linkerPacket);
 
             // Création du paquet pour la récéption de la liste des services
             // 1 byte pour le type, 1 pour le nombre de services, 100 services max
@@ -139,16 +134,16 @@ public class LinkerServer {
             // definition d'un time out et reception de la liste des services. Si un lieur met plus de 2sec pour
             // répondre on passe au lieur suivant
             try {
-                // TODO : UTILISER UN AUTRE PORT
-                pointToPointSocket.setSoTimeout(2000);
-                pointToPointSocket.receive(serviceListAddressPacket);
+                pointAPointSocket.setSoTimeout(2000);
+                pointAPointSocket.receive(serviceListAddressPacket);
             } catch (SocketTimeoutException e) {
                 // Dans le cas d'un timeout, on passe au suivant linker
                 continue;
             }
 
-            // TODO : est-ce qu'on envoie une réponse par exemple ERROR si c'est pas le bon type de requête ?
             // Vérification si le paquet est bien une réponse contenant la liste des services
+            // Si un client ou un serveur a envoyé une requête, elle sera ignorée car le lieur est entrain de démarrer
+            // C'est au rôle du client d'essayer un autre lieur si celui là ne répond pas
             int type = serviceListAddressPacket.getData()[0];
             if (type == (byte) Protocol.REPONSE_DEMANDE_LISTE_DE_SERVICES.ordinal()) {
                 // Ajout des nouveaux services dans la liste
@@ -159,14 +154,9 @@ public class LinkerServer {
                     byte[] portByte = Arrays.copyOfRange(serviceListAddressPacket.getData(), 7 + i * 7, 9 + i * 7);
                     int port = ((portByte[1] & 0xff) << 8) | (portByte[0] & 0xff);
 
-                    /**
-                     * byte[] portByte = new byte[2];
-                     portByte[0] = serviceAddresspacket.getData()[7];
-                     portByte[1] = serviceListAddressPacket.getData()[6];
-                     int port = new BigInteger(portByte).intValue();
-                     */
-
                     Service service = new Service(idService, ip.getHostAddress(), port);
+                    System.out.println("Nouveau service reçu:");
+                    System.out.println(service);
                     services.add(service);
                 }
                 break;
@@ -174,7 +164,7 @@ public class LinkerServer {
         }
 
         // On remet le timeout à 0 (infini)
-        pointToPointSocket.setSoTimeout(0);
+        pointAPointSocket.setSoTimeout(0);
         System.out.println("La liste des services est à jour");
     }
 
@@ -182,11 +172,12 @@ public class LinkerServer {
      * Méthode de réponse à un lieur qui a demandé la liste des services
      *
      * @param serviceAddressPacket
-     * @param pointToPointSocket
+     * @param pointAPointSocket
      * @throws InterruptedException
      * @throws IOException
      */
-    private void envoiListeServices(DatagramPacket serviceAddressPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    private void envoiListeServices(DatagramPacket serviceAddressPacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
+        System.out.println("Nouvelle demande de la liste des services");
 
         // Définition de la taille du paquet (2 + (le nombre de service * 7))
         byte[] listeServiceData = new byte[2 + (7 * services.size())];
@@ -205,9 +196,11 @@ public class LinkerServer {
             listeServiceData[4 + 7 * i] = ip[1];
             listeServiceData[5 + 7 * i] = ip[2];
             listeServiceData[6 + 7 * i] = ip[3];
-            System.out.println("TEST : " + service.getPort());
             listeServiceData[7 + 7 * i] = port[0];
             listeServiceData[8 + 7 * i] = port[1];
+
+            System.out.println("Envoi du service:");
+            System.out.println(service);
 
             i++;
         }
@@ -216,22 +209,21 @@ public class LinkerServer {
         DatagramPacket serviceListPacket = new DatagramPacket(listeServiceData, listeServiceData.length, InetAddress.getByName(serviceAddressPacket.getAddress().getHostName()), serviceAddressPacket.getPort());
 
         // Envoi du paquet
-        pointToPointSocket.send(serviceListPacket);
+        pointAPointSocket.send(serviceListPacket);
     }
 
     /**
      * Envoie l'IP et le port d'un service au client qui a effectué une demande de service
      *
      * @param serviceNumberPacket
-     * @param pointToPointSocket
+     * @param pointAPointSocket
      * @throws InterruptedException
      * @throws IOException
      */
-    private void envoiServiceAuClient(DatagramPacket serviceNumberPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    private void envoiServiceAuClient(DatagramPacket serviceNumberPacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
+        System.out.println("Envoi du service au client");
+        
         DatagramPacket servicePacket;
-
-        // recupère le service qui a été utilisé le moin récemment
-        // TODO : Récupérer le service avec l'id de service correspondant
 
         // Récupère le service qui a été utilisé le moin récemment si la liste des services n'est pas vide
         if(!services.isEmpty()) {
@@ -264,23 +256,23 @@ public class LinkerServer {
                 tosend[4] = ip[2];
                 tosend[5] = ip[3];
 
-                System.out.println("send p" + port[0]);
-                System.out.println("send p" + port[1]);
                 tosend[6] = port[0];
                 tosend[7] = port[1];
 
-                System.out.println("send" + service.getPort());
                 servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
-                System.out.println("send datagram");
                 service.use();
+
+                System.out.println("Service envoyé au client:");
+                System.out.println(service);
             }
         }
         else
         {
+            System.out.println("Aucun service avec cet id n'a été trouvé");
             servicePacket = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
         }
         // envoi du paquet
-        pointToPointSocket.send(servicePacket);
+        pointAPointSocket.send(servicePacket);
     }
 
     /**
@@ -290,7 +282,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    private void deleteService(DatagramPacket deleteServicePacket) throws InterruptedException, IOException {
+    private void suppressionService(DatagramPacket deleteServicePacket) throws InterruptedException, IOException {
         int IDService = deleteServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(deleteServicePacket.getData(), 2, 6));
         byte[] portByte = new byte[2];
@@ -298,7 +290,10 @@ public class LinkerServer {
         portByte[1] = deleteServicePacket.getData()[6];
         int port = new BigInteger(portByte).intValue();
 
+
         Service newService = new Service(IDService, ip.getHostAddress(), port);
+
+        System.out.println("Suppression du service: " + newService);
         services.remove(newService);
     }
 
@@ -309,7 +304,7 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    private void addService(DatagramPacket addServicePacket) throws InterruptedException, IOException {
+    private void ajoutService(DatagramPacket addServicePacket) throws InterruptedException, IOException {
         // Retrieve data from packet
         int idService = addServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(addServicePacket.getData(), 2, 6));
@@ -320,9 +315,11 @@ public class LinkerServer {
 
         // Ajoute le service à la liste s'il n'existe pas deja
 
-        System.out.println("ajout d'un service");
         Service newService = new Service(idService, ip.getHostAddress(), port);
-        // TODO : Verifier si contains marche bien
+
+        System.out.println("Ajout du service:");
+        System.out.println(newService);
+
         if(!services.contains(newService)) {
             services.add(newService);
         }
@@ -333,14 +330,15 @@ public class LinkerServer {
      * lieur de supprimer ce service.
      *
      * @param serviceNotExistPacket
-     * @param pointToPointSocket
+     * @param pointAPointSocket
      * @throws InterruptedException
      * @throws IOException
      */
-    private void verifExists(DatagramPacket serviceNotExistPacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
+    private void verifServiceExiste(DatagramPacket serviceNotExistPacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
+        // Création d'une connexion point à point
+        DatagramSocket verifServiceSocket = new DatagramSocket(pointToPointPort + 10);
 
-        System.out.println("verif");
-        // Retrieve service from packet
+        // Récupération du service depuis le packet
         int idService = serviceNotExistPacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceNotExistPacket.getData(), 2, 6));
         byte[] portByte = Arrays.copyOfRange(serviceNotExistPacket.getData(), 6, 8);
@@ -349,45 +347,44 @@ public class LinkerServer {
         // Envoie un paquet au service que le client n'a pas pu joindre
         Service serviceNotReachable = new Service(idService, ip.getHostAddress(), port);
         DatagramPacket checkPacket = new DatagramPacket(new byte[]{(byte) Protocol.VERIFIE_N_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNotReachable.getIp()), serviceNotReachable.getPort());
-        pointToPointSocket.send(checkPacket);
+        verifServiceSocket.send(checkPacket);
+
+        System.out.println("Verification de l'existence du service:");
+        System.out.println(serviceNotReachable);
 
         byte[] bufferResponse = new byte[1];
         try{
             // si nous avons eu une reponse dans les deux seconde, le service existe toujours, si non
             // on le supprime et notifie les autres lieurs
-            // TODO : UTILISER UN AUTRE PORT
             DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
-            pointToPointSocket.setSoTimeout(2000);
-            pointToPointSocket.receive(serviceResponsePacket);
+            verifServiceSocket.setSoTimeout(2000);
+            verifServiceSocket.receive(serviceResponsePacket);
 
             // If wrong type, delete service
             int messageType = serviceResponsePacket.getData()[0];
             if (messageType != (byte) Protocol.J_EXISTE.ordinal()) {
-                System.out.println("throw");
-                DatagramPacket sayNotExist = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, serviceNotExistPacket.getAddress(), serviceNotExistPacket.getPort());
-                removeServiceAndNotifyLinkers(serviceNotReachable, pointToPointSocket);
-                pointToPointSocket.send(sayNotExist);
+                System.out.println("Le service n'existe pas");
+                suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
+            } else{
+                System.out.println("Le service existe");
             }
         } catch (SocketTimeoutException e) {
-            System.out.println("throw");
-            DatagramPacket sayNotExist = new DatagramPacket(new byte[]{(byte) Protocol.SERVICE_EXISTE_PAS.ordinal()}, 1, serviceNotExistPacket.getAddress(), serviceNotExistPacket.getPort());
-            removeServiceAndNotifyLinkers(serviceNotReachable, pointToPointSocket);
-            pointToPointSocket.send(sayNotExist);
+            System.out.println("Le service n'existe pas");
+            suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
         }
-
-        // redefinition du time out à l'infinie
-        pointToPointSocket.setSoTimeout(0);
-
     }
 
     /**
      * methode qui supprime le service de la liste de service et informe les autres lieurs
      *
      * @param service,
-     * @param pointToPointSocket
+     * @param pointAPointSocket
      * @throws IOException
      */
-    private void removeServiceAndNotifyLinkers(Service service, DatagramSocket pointToPointSocket) throws IOException {
+    private void suppressionServiceEtNotificationLieurs(Service service, DatagramSocket pointAPointSocket) throws IOException {
+
+        System.out.println("Notification aux autres lieurs que ce service n'existe pas:");
+        System.out.println(service);
 
         byte tosend[] = new byte[8];
         services.remove(service);
@@ -408,32 +405,33 @@ public class LinkerServer {
             // creation du paquet
             DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(linker.getIp()), linker.getPort());
             // envoi du paquet
-            pointToPointSocket.send(servicePacket);
+            pointAPointSocket.send(servicePacket);
         }
     }
 
     /**
-     * Method used to add a service when it subscribes
-     * Methode d'ajout d'un nouveau service, information aux autres lieurs de l'existance de ce nouveau service,
+     * Methode d'ajout d'un nouveau service, envoi de l'information aux autres lieurs de l'existance de ce nouveau service,
      * confirmation au service qu'il a bien été ajouté.
      *
      * @param subscribeServicePacket
-     * @param pointToPointSocket
+     * @param pointAPointSocket
      * @throws InterruptedException
      * @throws IOException
      */
-    private void serviceSubscribe(DatagramPacket subscribeServicePacket, DatagramSocket pointToPointSocket) throws InterruptedException, IOException {
-        // recuperation des datas du parquet
+    private void souscriptionService(DatagramPacket subscribeServicePacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
+        // Récuperation des données du parquet
         int idService = subscribeServicePacket.getData()[1];
         InetAddress ip = subscribeServicePacket.getAddress();
         int port = subscribeServicePacket.getPort();
 
-        // creation du service et ajout a la liste
+        // Création du service et ajout a la liste
         Service newService = new Service(idService, ip.getHostAddress(), port);
         services.add(newService);
 
-        byte tosend[] = new byte[8];
+        System.out.println("Nouvelle souscription du service:");
+        System.out.println(newService);
 
+        byte tosend[] = new byte[8];
         byte[] ipByte = InetAddress.getByName(newService.getIp()).getAddress();
         byte[] portbyte = Util.intToBytes(newService.getPort(), 2);
 
@@ -445,19 +443,23 @@ public class LinkerServer {
         tosend[5] = ipByte[3];
         tosend[6] = portbyte[0];
         tosend[7] = portbyte[1];
-        // information aux autres lieurs
+
+        System.out.println("Notification aux autres lieurs de l'ajout du service");
+
+        // Envoi de l'information aux autres lieurs
         for(Linker linker : linkers) {
-            // creation du paquet
+            // Création du paquet
             DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(linker.getIp()), linker.getPort());
-            // envoi du paquet
-            System.out.println("notfy all other linker");
-            pointToPointSocket.send(servicePacket);
+            // Envoi du paquet
+            pointAPointSocket.send(servicePacket);
         }
 
-        // creation du paquet de confirmation d'abonnement
+        System.out.println("Envoi de la confirmation de souscription au service");
+
+        // Création du paquet de confirmation d'abonnement
         DatagramPacket confirmSubPacket = new DatagramPacket(new byte[]{(byte) Protocol.CONFIRMATION_ABONNEMENT.ordinal()}, 1, InetAddress.getByName(subscribeServicePacket.getAddress().getHostAddress()), subscribeServicePacket.getPort());
 
-        // envoi du paquet
-        pointToPointSocket.send(confirmSubPacket);
+        // Envoi du paquet
+        pointAPointSocket.send(confirmSubPacket);
     }
 }

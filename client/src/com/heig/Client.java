@@ -21,9 +21,13 @@ public class Client {
 
     // List of the other linkers TODO : remove the values and set it with the args
     private final Linker[] linkers = {
-            //new Linker("127.0.0.1", 1234),
-            new Linker("127.0.0.1", 12349)
+            new Linker("127.0.0.1", 1111),
+            new Linker("127.0.0.1", 2222)
     };
+
+    final int idService = 1;
+
+    final int pointToPointPort = 12342;
 
 
     /**
@@ -42,25 +46,19 @@ public class Client {
      */
     public void start() throws IOException, InterruptedException {
 
-        int max = linkers.length - 1;
-        int nombreLieurs;
-        int pointToPointPort = 12347;
-
 
         DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
         System.out.println("Démarrage du client");
 
         while (true) {
-            nombreLieurs = ThreadLocalRandom.current().nextInt(0, max + 1);
-            byte idService = (byte) ThreadLocalRandom.current().nextInt(1, 2 + 1);
+            Linker lieur = linkers[ThreadLocalRandom.current().nextInt(0, linkers.length)];
+            System.out.println("Le client va demander le service" + idService + " au lieur:");
+            System.out.println(lieur);
 
-            System.out.println("le client demande le service " + idService + " au lieur " + nombreLieurs);
-
-
-            byte[] dataAEnvoyer = new byte[2];
-            dataAEnvoyer[0] = (byte) Protocol.DEMANDE_DE_SEVICE.ordinal();
-            dataAEnvoyer[1] = idService;
-            DatagramPacket demandeDeServicePaquet = new DatagramPacket(dataAEnvoyer, 2, InetAddress.getByName(linkers[nombreLieurs].getIp()), linkers[nombreLieurs].getPort());
+            byte[] demandeServiceBuffer = new byte[2];
+            demandeServiceBuffer[0] = (byte) Protocol.DEMANDE_DE_SEVICE.ordinal();
+            demandeServiceBuffer[1] = idService;
+            DatagramPacket demandeDeServicePaquet = new DatagramPacket(demandeServiceBuffer, 2, InetAddress.getByName(lieur.getIp()), lieur.getPort());
 
             pointToPointSocket.send(demandeDeServicePaquet);
 
@@ -68,18 +66,17 @@ public class Client {
             DatagramPacket reponseDemandeDeServicePaquet = new DatagramPacket(buffer, buffer.length);
 
             try {
-                // TODO : UTILISER UN AUTRE PORT
                 pointToPointSocket.setSoTimeout(2000);
                 pointToPointSocket.receive(reponseDemandeDeServicePaquet);
             } catch (SocketTimeoutException e) {
-                System.out.println("Aucun lieur attient");
+                System.out.println("Le lieur n'a pas pu etre atteint");
                 break;
             }
 
             pointToPointSocket.setSoTimeout(0);
             if (reponseDemandeDeServicePaquet.getData()[0] == Protocol.SERVICE_EXISTE_PAS.ordinal() || reponseDemandeDeServicePaquet.getData()[0] == Protocol.REPONSE_DEMANDE_DE_SERVICE.ordinal()) {
-                System.out.println("le lieur repond");
-                System.out.println(reponseDemandeDeServicePaquet.getData()[0]);
+                System.out.println("Reponse du lieur recue");
+
                 // Service not found
                 if (reponseDemandeDeServicePaquet.getData()[0] == Protocol.SERVICE_EXISTE_PAS.ordinal()) {
                     System.out.println("le service demandé n'a pas été trouvé");
@@ -88,27 +85,18 @@ public class Client {
                 // Service found - use the service
                 else if (reponseDemandeDeServicePaquet.getData()[0] == Protocol.REPONSE_DEMANDE_DE_SERVICE.ordinal()) {
                     // Get the ip and port
-
                     InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(reponseDemandeDeServicePaquet.getData(), 2, 6));
-
                     byte[] portByte = new byte[2];
                     portByte[0] = reponseDemandeDeServicePaquet.getData()[7];
                     portByte[1] = reponseDemandeDeServicePaquet.getData()[6];
                     int port = new BigInteger(portByte).intValue();
 
-                    System.out.println("Le service a été trouvé il se trouve ici : " + ip.getHostAddress() + ":" + port);
+                    System.out.println("Le service a été trouvé il est joignable a l'adresse: " + ip.getHostAddress() + ":" + port);
 
                     // Send the echo message
-                    byte[] messageAEnvoyer = {1, 1, 1, 1};
-                    dataAEnvoyer = new byte[messageAEnvoyer.length + 2];
-                    dataAEnvoyer[0] = (byte) Protocol.CONTACT_SERVICE.ordinal();
-                    dataAEnvoyer[1] = (byte) messageAEnvoyer.length;
-                    dataAEnvoyer[2] = messageAEnvoyer[0];
-                    dataAEnvoyer[3] = messageAEnvoyer[1];
-                    dataAEnvoyer[4] = messageAEnvoyer[2];
-                    dataAEnvoyer[5] = messageAEnvoyer[3];
+                    byte[] messageAEnvoyer = {(byte) Protocol.CONTACT_SERVICE.ordinal(), 4, 1, 1, 1, 1};
 
-                    DatagramPacket contactServicePaquet = new DatagramPacket(dataAEnvoyer, messageAEnvoyer.length + 2, ip, port);
+                    DatagramPacket contactServicePaquet = new DatagramPacket(messageAEnvoyer, messageAEnvoyer.length, ip, port);
 
                     System.out.println("Message envoyé au service");
                     pointToPointSocket.send(contactServicePaquet);
@@ -117,37 +105,24 @@ public class Client {
                     DatagramPacket reponseServicePaquet = new DatagramPacket(buffer, buffer.length);
 
                     try {
-                        // TODO : UTILISER UN AUTRE PORT
                         pointToPointSocket.setSoTimeout(2000);
                         pointToPointSocket.receive(reponseServicePaquet);
                         if (reponseServicePaquet.getData()[0] == Protocol.REPONSE_AU_SERVICE.ordinal()) {
                             System.out.println("Reponse du serveur reçue");
                         }
                     } catch (SocketTimeoutException e) {
-                        dataAEnvoyer = new byte[8];
-                        dataAEnvoyer[0] = (byte) Protocol.SERVICE_EXISTE_PAS.ordinal();
-                        dataAEnvoyer[1] = idService;
-                        dataAEnvoyer[2] = ip.getAddress()[0];
-                        dataAEnvoyer[3] = ip.getAddress()[1];
-                        dataAEnvoyer[4] = ip.getAddress()[2];
-                        dataAEnvoyer[5] = ip.getAddress()[3];
+                        byte[] serviceExistePasBuffer = {(byte) Protocol.SERVICE_EXISTE_PAS.ordinal(), (byte) idService,
+                                                  ip.getAddress()[0], ip.getAddress()[1], ip.getAddress()[2], ip.getAddress()[3],
+                                                  reponseDemandeDeServicePaquet.getData()[6],
+                                                  reponseDemandeDeServicePaquet.getData()[7]};
 
-                        dataAEnvoyer[6] = reponseDemandeDeServicePaquet.getData()[6];
-                        dataAEnvoyer[7] = reponseDemandeDeServicePaquet.getData()[7];
-
-                        System.out.print("demande de verification");
-                        DatagramPacket serviceNonAttient = new DatagramPacket(dataAEnvoyer, 8, InetAddress.getByName(linkers[nombreLieurs].getIp()), linkers[nombreLieurs].getPort());
-                        pointToPointSocket.send(serviceNonAttient);
-                        pointToPointSocket.setSoTimeout(0);
-
-                        buffer = new byte[1];
-                        DatagramPacket reponseExistePaquet = new DatagramPacket(buffer, buffer.length);
-                        pointToPointSocket.receive(reponseExistePaquet);
-                        if (reponseExistePaquet.getData()[0] == Protocol.SERVICE_EXISTE_PAS.ordinal()) {
-                            System.out.println("le service demandé n'a pas été trouvé");
-                            break;
-                        }
+                        System.out.print("Timeout de la demande au service, envoi du message SERVICE_EXISTE_PAS au lieur");
+                        DatagramPacket serviceNonAtteint = new DatagramPacket(serviceExistePasBuffer, 8, InetAddress.getByName(lieur.getIp()), lieur.getPort());
+                        pointToPointSocket.send(serviceNonAtteint);
                     }
+
+                    // On remet la valeur du timeout à 0 (infini)
+                    pointToPointSocket.setSoTimeout(0);
                 }
             }
             // Wait and ask again for the service

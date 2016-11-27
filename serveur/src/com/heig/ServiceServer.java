@@ -18,12 +18,13 @@ public class ServiceServer {
 
     // List of the other linkers TODO : remove the values and set it with the args
     private final Linker[] linkers = {
-            new Linker("127.0.0.1", 12349)
+            new Linker("127.0.0.1", 1111),
+            new Linker("127.0.0.1", 2222)
     };
 
     private final byte idService = 1;
 
-    private final int pointToPointPort = 12345; // TODO : Make this an argument
+    private final int pointToPointPort = 12347; // TODO : Make this an argument
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -32,7 +33,7 @@ public class ServiceServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void LinkerServer() throws InterruptedException, IOException {
+    public ServiceServer(){
 
     }
 
@@ -43,54 +44,72 @@ public class ServiceServer {
      * @throws InterruptedException
      */
     public void start() throws IOException, InterruptedException {
+        // Utilisé pour générer des valeurs aléatoires
         Random rand = new Random();
 
-        // Create point to point socket to send messages to the linker
+        // Création du socket point à point pour l'envoi de packet udp
         DatagramSocket pointToPointSocket = new DatagramSocket(pointToPointPort);
-        System.out.println("Started the socket!");
+        System.out.println("Serveur démarré!");
 
-        // Subscribe to the linker
+        // TODO : EST-CE qu'on essaie de se lier à tout les lieurs plutôt qu'un aléatoire ?
+        // Souscription à un lieur aléatoire dans la liste des lieurs
         int linkerNumber = rand.nextInt(linkers.length);
-        byte[] tosend =new byte[2];
-        tosend[0] = (byte) Protocol.ABONNEMENT.ordinal();
-        tosend[1] = idService;
-        DatagramPacket linkerSubscribePacket = new DatagramPacket(tosend, 2, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
-
+        byte[] souscriptionBuffer = {(byte) Protocol.ABONNEMENT.ordinal(), idService};
+        System.out.println("Tentative de souscription au lieur:");
+        System.out.println(linkers[linkerNumber]);
+        DatagramPacket linkerSubscribePacket = new DatagramPacket(souscriptionBuffer, souscriptionBuffer.length, InetAddress.getByName(linkers[linkerNumber].getIp()), linkers[linkerNumber].getPort());
         pointToPointSocket.send(linkerSubscribePacket);
 
-        // Wait for confirmation
+        // Attente de la confirmation du lieur
         byte[] buffer = new byte[1];
         DatagramPacket linkerConfirmationPacket = new DatagramPacket(buffer, buffer.length);
 
         do {
             try {
-                pointToPointSocket.setSoTimeout(2000);
+                pointToPointSocket.setSoTimeout(4000);
                 pointToPointSocket.receive(linkerConfirmationPacket);
             } catch (SocketTimeoutException e) {
-                System.out.print("lieur non attient, le serveur va s'arreter");
-                System.exit(0);
+                System.out.print("Le lieur n'a pas pu etre atteint, arret du serveur");
+                return;
             }
         } while (linkerConfirmationPacket.getData()[0] != Protocol.CONFIRMATION_ABONNEMENT.ordinal());
+
+        System.out.println("Confirmation de souscription reçue");
+
+        // On remet le timeout du socket à 0 (infini)
         pointToPointSocket.setSoTimeout(0);
-        // Do service forever
+
+        // Performer le service à l'infini maintenant qu'on est souscris aux lieurs
         while (true) {
-            System.out.println("run");
-            // Wait for client request
-            byte[] buffer2 = new byte[4];
-            DatagramPacket clientPacket = new DatagramPacket(buffer2, buffer2.length);
+            System.out.println("Attente d'une nouvelle demande d'un client");
+
+            // Wait for client request, taille maximal d'un demande: 1000 bytes
+            byte[] requeteBuffer = new byte[1000];
+            DatagramPacket clientPacket = new DatagramPacket(requeteBuffer, requeteBuffer.length);
             pointToPointSocket.receive(clientPacket);
 
+            // Si c'est une requête au service d'echo
             if(clientPacket.getData()[0] == (byte)Protocol.CONTACT_SERVICE.ordinal()) {
-                System.out.println("recive client " + clientPacket.getAddress().getHostAddress() + " " + clientPacket.getPort());
-                tosend = new byte[clientPacket.getData().length];
-                tosend[0] = (byte) Protocol.REPONSE_AU_SERVICE.ordinal();
-                // Answer to client request
-                DatagramPacket clientResponsePacket = new DatagramPacket(tosend, clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
+                System.out.println("Réception d'une nouvelle demande du client " +
+                                   clientPacket.getAddress().getHostAddress() + " " + clientPacket.getPort());
+
+                // Création du paquet de réponse
+                byte[] reponseBuffer = new byte[clientPacket.getData().length];
+                reponseBuffer[0] = (byte) Protocol.REPONSE_AU_SERVICE.ordinal();
+                for(int i = 1; i < clientPacket.getData().length; i++){
+                    reponseBuffer[i] = clientPacket.getData()[i];
+                }
+
+                // Envoi de la réponse au client
+                DatagramPacket clientResponsePacket = new DatagramPacket(reponseBuffer, clientPacket.getData().length, clientPacket.getAddress(), clientPacket.getPort());
                 pointToPointSocket.send(clientResponsePacket);
             }
+            // Sinon c'est un test d'existance de la part du lieur
             else
             {
-                System.out.print("Reception de test d'existance");
+                System.out.print("Reception de test d'existance de la part du lieur");
+
+                // Envoi de la confirmation d'existance au lieur
                 DatagramPacket sayItExist = new DatagramPacket(new byte[]{(byte) Protocol.J_EXISTE.ordinal()}, 1, clientPacket.getAddress(), clientPacket.getPort());
                 pointToPointSocket.send(sayItExist);
             }

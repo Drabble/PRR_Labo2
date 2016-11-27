@@ -58,4 +58,13 @@ public class Linker {
     public void setPort(int port) {
         this.port = port;
     }
+
+    /**
+     * Convert the linker to string
+     *
+     * @return
+     */
+    public String toString() {
+        return "Service: ip " + ip + ", port " + port;
+    }
 }
