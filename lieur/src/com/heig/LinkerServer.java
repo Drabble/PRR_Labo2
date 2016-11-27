@@ -34,10 +34,13 @@ public class LinkerServer {
     // TODO : FAIRE LES TESTS et le rapport et les commentaires
     // List of the other linkers TODO : remove the values and set it with the args
     private final Linker[] linkers = {
-            new Linker("127.0.0.1", 1111)
+            new Linker("127.0.0.1", 2222)
     };
 
-    private final int pointToPointPort = 2222; // TODO : Make this an argument to the main
+    private  int pointToPointPort;
+    private  int pointToPointPortVerif;
+
+
 
     /**
      * Creates a new linker which will listen on the specified port and will synchronise with the specified linkers.
@@ -46,8 +49,9 @@ public class LinkerServer {
      * @throws InterruptedException
      * @throws IOException
      */
-    public void LinkerServer(){
-
+    LinkerServer(int pointToPointPort, int pointToPointPortVerif){
+        this.pointToPointPort = pointToPointPort;
+        this.pointToPointPortVerif = pointToPointPortVerif;
     }
 
     /**
@@ -76,6 +80,15 @@ public class LinkerServer {
             byte[] buffer = new byte[702];
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
             pointAPointSocket.receive(receivePacket);
+
+
+            System.out.println("Liste actuelle");
+            for(int i = 0 ; i< services.size() ; i++)
+            {
+                System.out.println(services.get(i));
+            }
+
+
             System.out.println("Nouvelle demande recue");
 
             // Récupération du type de message
@@ -294,7 +307,17 @@ public class LinkerServer {
         Service newService = new Service(IDService, ip.getHostAddress(), port);
 
         System.out.println("Suppression du service: " + newService);
-        services.remove(newService);
+
+        for(int i = 0 ; i< services.size() ; i++)
+        {
+            System.out.println(services.get(i));
+            if(services.get(i).getIdService() == newService.getIdService()
+                    && services.get(i).getIp().equals(newService.getIp())
+                    && services.get(i).getPort() == newService.getPort())
+            {
+                services.remove(i);
+            }
+        }
     }
 
     /**
@@ -336,13 +359,15 @@ public class LinkerServer {
      */
     private void verifServiceExiste(DatagramPacket serviceNotExistPacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
         // Création d'une connexion point à point
-        DatagramSocket verifServiceSocket = new DatagramSocket(pointToPointPort + 10);
+
+        //TODO faire une constante au lieux du 10 ?
+        DatagramSocket verifServiceSocket = new DatagramSocket(pointToPointPortVerif);
 
         // Récupération du service depuis le packet
         int idService = serviceNotExistPacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceNotExistPacket.getData(), 2, 6));
         byte[] portByte = Arrays.copyOfRange(serviceNotExistPacket.getData(), 6, 8);
-        int port = ((portByte[0] & 0xff) << 8) | (portByte[1] & 0xff);
+        int port = ((portByte[1] & 0xff) << 8) | (portByte[0] & 0xff);
 
         // Envoie un paquet au service que le client n'a pas pu joindre
         Service serviceNotReachable = new Service(idService, ip.getHostAddress(), port);
@@ -358,6 +383,7 @@ public class LinkerServer {
             // on le supprime et notifie les autres lieurs
             DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
             verifServiceSocket.setSoTimeout(2000);
+            //TODO admetons le cas suivant : un lieur fait la verification, mais entre temps il recoit une demande d'un client
             verifServiceSocket.receive(serviceResponsePacket);
 
             // If wrong type, delete service
@@ -372,6 +398,8 @@ public class LinkerServer {
             System.out.println("Le service n'existe pas");
             suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
         }
+
+        verifServiceSocket.close();
     }
 
     /**
@@ -388,6 +416,26 @@ public class LinkerServer {
 
         byte tosend[] = new byte[8];
         services.remove(service);
+
+        System.out.println("suppression de " + service);
+
+        System.out.println("dans : ");
+        for(int i = 0 ; i< services.size() ; i++)
+        {
+            System.out.println(services.get(i));
+            if(services.get(i).getIdService() == service.getIdService()
+                    && services.get(i).getIp().equals(service.getIp())
+                    && services.get(i).getPort() == service.getPort())
+            {
+                services.remove(i);
+            }
+        }
+        System.out.println("");
+        System.out.println("Apres");
+        for(int i = 0 ; i< services.size() ; i++) {
+            System.out.println(services.get(i));
+        }
+
 
         byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
         byte[] port = Util.intToBytes(service.getPort(), 2);
