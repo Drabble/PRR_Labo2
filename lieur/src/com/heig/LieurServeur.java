@@ -246,22 +246,12 @@ public class LieurServeur {
             }
             // Sinon on lui retourne le service trouvé
             else {
-                // Récupère la liste des
                 byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
                 byte[] port = Util.intToBytes(service.getPort(), 2);
+                byte[] serviceBuffer = {(byte) Protocole.REPONSE_DEMANDE_DE_SERVICE.ordinal(), (byte) service.getIdService(),
+                                         ip[0], ip[1], ip[2], ip[3], port[0], port[1]};
 
-                byte[] tosend = new byte[8];
-                tosend[0] = (byte) Protocole.REPONSE_DEMANDE_DE_SERVICE.ordinal();
-                tosend[1] = (byte) service.getIdService();
-                tosend[2] = ip[0];
-                tosend[3] = ip[1];
-                tosend[4] = ip[2];
-                tosend[5] = ip[3];
-
-                tosend[6] = port[0];
-                tosend[7] = port[1];
-
-                servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
+                servicePacket = new DatagramPacket(serviceBuffer, serviceBuffer.length, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
                 service.utiliser();
 
                 System.out.println("Service envoyé au client:");
@@ -292,7 +282,6 @@ public class LieurServeur {
         portByte[1] = deleteServicePacket.getData()[6];
         int port = new BigInteger(portByte).intValue();
 
-
         Service newService = new Service(IDService, ip.getHostAddress(), port);
 
         System.out.println("Suppression du service: " + newService);
@@ -320,18 +309,13 @@ public class LieurServeur {
         // Retrieve data from packet
         int idService = addServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(addServicePacket.getData(), 2, 6));
-        byte[] portByte = new byte[2];
-        portByte[0] = addServicePacket.getData()[7];
-        portByte[1] = addServicePacket.getData()[6];
+        byte[] portByte = {addServicePacket.getData()[7], addServicePacket.getData()[6]};
         int port = new BigInteger(portByte).intValue();
 
-        // Ajoute le service à la liste s'il n'existe pas deja
-
+        // Ajoute le service à la liste s'il n'existe pas déj$
         Service newService = new Service(idService, ip.getHostAddress(), port);
-
         System.out.println("Ajout du service:");
         System.out.println(newService);
-
         if(!services.contains(newService)) {
             services.add(newService);
         }
@@ -400,45 +384,26 @@ public class LieurServeur {
         System.out.println("Notification aux autres lieurs que ce service n'existe pas:");
         System.out.println(service);
 
-        byte tosend[] = new byte[8];
-        services.remove(service);
-
-        System.out.println("suppression de " + service);
-
-        System.out.println("dans : ");
+        // Suppression du service dans la liste des services
         for(int i = 0 ; i< services.size() ; i++)
         {
-            System.out.println(services.get(i));
             if(services.get(i).getIdService() == service.getIdService()
                     && services.get(i).getIp().equals(service.getIp())
-                    && services.get(i).getPort() == service.getPort())
-            {
+                    && services.get(i).getPort() == service.getPort()) {
                 services.remove(i);
             }
         }
-        System.out.println("");
-        System.out.println("Apres");
-        for (Service service1 : services) {
-            System.out.println(service1);
-        }
 
-
+        // Notification aux autres lieurs que le service a été supprimé
         byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
         byte[] port = Util.intToBytes(service.getPort(), 2);
-
-        tosend[0] = (byte) Protocole.SUPPRESSION_SERVICE.ordinal();
-        tosend[1] = (byte) service.getIdService();
-        tosend[2] = ip[0];
-        tosend[3] = ip[1];
-        tosend[4] = ip[2];
-        tosend[5] = ip[3];
-        tosend[6] = port[0];
-        tosend[7] = port[1];
-
+        byte[] suppressionServiceBuffer = {(byte) Protocole.SUPPRESSION_SERVICE.ordinal(), (byte) service.getIdService(),
+                                            ip[0], ip[1], ip[2], ip[3], port[0], port[1]};
         for(Lieur Lieur : lieurs) {
-            // creation du paquet
-            DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
-            // envoi du paquet
+            // Création du paquet
+            DatagramPacket servicePacket = new DatagramPacket(suppressionServiceBuffer, suppressionServiceBuffer.length, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
+
+            // Envoi du paquet
             pointAPointSocket.send(servicePacket);
         }
     }
@@ -465,25 +430,20 @@ public class LieurServeur {
         System.out.println("Nouvelle souscription du service:");
         System.out.println(newService);
 
-        byte tosend[] = new byte[8];
+
         byte[] ipByte = InetAddress.getByName(newService.getIp()).getAddress();
         byte[] portbyte = Util.intToBytes(newService.getPort(), 2);
 
-        tosend[0] = (byte) Protocole.AJOUT_SERVICE.ordinal();
-        tosend[1] = (byte) newService.getIdService();
-        tosend[2] = ipByte[0];
-        tosend[3] = ipByte[1];
-        tosend[4] = ipByte[2];
-        tosend[5] = ipByte[3];
-        tosend[6] = portbyte[0];
-        tosend[7] = portbyte[1];
+        byte[] ajoutServiceBuffer = {(byte) Protocole.AJOUT_SERVICE.ordinal(), (byte) newService.getIdService(),
+                                      ipByte[0], ipByte[1], ipByte[2], ipByte[3], portbyte[0], portbyte[1]};
 
         System.out.println("Notification aux autres lieurs de l'ajout du service");
 
         // Envoi de l'information aux autres lieurs
         for(Lieur Lieur : lieurs) {
             // Création du paquet
-            DatagramPacket servicePacket = new DatagramPacket(tosend, 8, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
+            DatagramPacket servicePacket = new DatagramPacket(ajoutServiceBuffer, ajoutServiceBuffer.length, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
+
             // Envoi du paquet
             pointAPointSocket.send(servicePacket);
         }
