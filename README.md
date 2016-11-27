@@ -26,15 +26,17 @@ ainsi que le type du service rendu.
 
 ### Tests à effectuer
 
-Pour tester le bon fonctionnement de l'application obténue, les tests suivantes doivent être réaliser avec succès.
+Le tableau suivant présente les tests qui seront effectués.
 
-* Un lieur doit être obténu aléatoirement à partir d'une liste;
-* Un lieur ou un serveur doit être redemarré aussitôt qu'il est tombé en panne;
-* Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles;
-* Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur;
-* Le lieur doit repondre uniquement aux service existants;
-* Un client doit notifier un lieu d'un service non disponible;
-* Après notification d'un client lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs
-* Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs
-* Deux clients se connectent l'un apres l'autre (1 sec d'intervalle ) à un lieur pour l'informer que le service X est down (crash probable du au fait que le port d'ecoute du lieur sera occupé)
-* client fait une demande de service au lieur alors que celui si est en verification d'existance d'un autre service.
+| **Tests** | **Resutats** | **Commentaires**<br/> |  
+| --- | --- | --- |
+| Un lieur doit être obténu aléatoirement à partir d'une liste | succés | Aucun |
+| Un lieur ou un serveur doit être redemarré aussitôt qu'il est tombé en panne  |  |  |
+| Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles   |  |  |
+| Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur   |  |  |
+| Le lieur doit repondre uniquement aux service existants   |  |  |
+| Un client doit notifier un lieu d'un service non disponible   |  |  |
+| Après notification d'un client lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs   |  |  |
+|  Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs   |  |  |
+| Deux clients se connectent l'un apres l'autre (1 sec d'intervalle ) à un lieur pour l'informer que le service X est down (crash probable du au fait que le port d'ecoute du lieur sera occupé)   |  |  |
+| client fait une demande de service au lieur alors que celui si est en verification d'existance d'un autre service   |  |  |
