@@ -31,20 +31,20 @@ Ce paquet est envoyé quand nous voulons faire une requête à un service.
 il est constitué de la manière suivante : 
  > [type de paquet][longueur du message][message]
 
-##### REPONSE_AU_SERVICE
+##### REPONSE_DU_SERVICE
 Réponse du service questionné.
 Envoyé après réception de <strong>« CONTACT_SERVICE »</strong>
 il est constitué de la manière suivante : 
  > [type de paquet][longueur du message][message]
 
-##### DEMANDE_DE_SEVICE
-Ce parquet est envoyé quand un client veux accéder à un service.
+##### DEMANDE_DE_SERVICE
+Ce paquet est envoyé quand un client veux accéder à un service.
 Il est constitué de la manière suivante : 
  > [type de paquet][type de service demandé]
 
 ##### REPONSE_DEMANDE_DE_SERVICE
 Réponse du service de la demande du client.
-Envoyé après réception de <strong>« DEMANDE_DE_SEVICE »</strong>
+Envoyé après réception de <strong>« DEMANDE_DE_SERVICE »</strong>
 Il est constitué de la manière suivante : 
  > [type de paquet][IP du service][port du service]
 
@@ -54,7 +54,7 @@ Il est constitué de la manière suivante :
  > [type de paquet][type du service][IP du service][port du service]
 
 Cas lieur → client : Paquet envoyé si le lieur ne connais pas le type de service demandé.
-Envoyé après réception de <strong>« DEMANDE_DE_SEVICE »</strong>
+Envoyé après réception de <strong>« DEMANDE_DE_SERVICE »</strong>
 Il est constitué de la manière suivante : 
  > [type de paquet]
 
@@ -64,34 +64,34 @@ Il est constitué de la manière suivante :
  > [type de paquet][type de service]
 
 ##### CONFIRMATION_ABONNEMENT
-Ce parquet est envoyé comme confirmation d’adhésion d'un service à un lieur, une fois ce paquet reçu par le service, ce dernier tournera dans une boucle infinie.
+Ce paquet est envoyé comme confirmation d’adhésion d'un service à un lieur, une fois ce paquet reçu par le service, ce dernier tournera dans une boucle infinie.
 Envoyé après réception de <strong>« ABONNEMENT »</strong>
 Il est constitué de la manière suivante :
  > [type de paquet]
 
 ##### DEMANDE_DE_LISTE_DE_SERVICES
-Ce parquet est envoyé quand à un lieur quand un lieur démarre pour mettre à jour ça liste de service.
+Ce paquet est envoyé quand à un lieur quand un lieur démarre pour mettre à jour ça liste de service.
 Il est constitué de la manière suivante :  
  >[type de paquet]
 
 ##### REPONSE_DEMANDE_LISTE_DE_SERVICES
-Ce parquet est envoyé en réponse à la demande de mise à jour d'un lieur.
+Ce paquet est envoyé en réponse à la demande de mise à jour d'un lieur.
 Envoyé après réception de <strong>«DEMANDE_DE_LISTE_DE_SERVICES»</strong>  
 Il est constitué de la manière suivante : 
  > [type de paquet][nombre de service][type de service][IP du service][port du service]
 
 ##### AJOUT_SERVICE
-Ce parquet est envoyé par un lieur vers les autre lieur après réception du paquet <strong>« ABONNEMENT »</strong>
+Ce paquet est envoyé par un lieur vers les autre lieur après réception du paquet <strong>« ABONNEMENT »</strong>
 Il est constitué de la manière suivante :
  > [type de paquet][type de service][IP du service][port du service]
 
-##### DELETE_SERVICE
-Ce parquet est envoyé par l’émission du paquet <strong>« VERIFIE_N_EXISTE_PAS »</strong> qui n'a pas donné de réponse <strong>« J_EXISTE »</strong>. Ce paquet est envoyé au autres lieurs pour leur dire de supprimer le service incriminé.
+##### SUPPRESSION_SERVICE
+Ce paquet est envoyé par l’émission du paquet <strong>« VERIFIE_N_EXISTE_PAS »</strong> qui n'a pas donné de réponse <strong>« J_EXISTE »</strong>. Ce paquet est envoyé au autres lieurs pour leur dire de supprimer le service incriminé.
 Il est constitué de la manière suivante :
  > [type de paquet][type de service][IP du service][port du service]
 
 #####  VERIFIE_N_EXISTE_PAS
-Ce parquet est envoyé par le lieur après réception du <strong>« SERVICE_EXISTE_PAS »</strong>. Il est envoyé du lieur vers le service incriminé pour vérifier si ce dernier est bien injoignable. Il est constitué de la manière suivante : 
+Ce paquet est envoyé par le lieur après réception du <strong>« SERVICE_EXISTE_PAS »</strong>. Il est envoyé du lieur vers le service incriminé pour vérifier si ce dernier est bien injoignable. Il est constitué de la manière suivante : 
  >[type de paquet]
 
 #####  J_EXISTE
