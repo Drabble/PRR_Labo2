@@ -6,12 +6,12 @@
 package com.heig;
 
 /**
- * Proposes utility methods
+ * Définis des méthodes utilitaires
  */
 public class Util {
 
     /**
-     * Transform an int to bytes
+     * Transform un int en tableau de bytes
      *
      * @param x
      * @param n

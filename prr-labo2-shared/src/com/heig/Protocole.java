@@ -6,12 +6,12 @@
 package com.heig;
 
 /**
- * Defines different messages of the protocol to exchange UDP packets between the client, the server and the linker
+ * Défini les différents types de message du protocole d'échange de paquet UDP entre le client, le serveur et le lieur
  */
-public enum Protocol {
+public enum Protocole {
     CONTACT_SERVICE,
-    REPONSE_AU_SERVICE, // TODO : REPONSE_DE_SERVICE
-    DEMANDE_DE_SEVICE,
+    REPONSE_DU_SERVICE,
+    DEMANDE_DE_SERVICE,
     REPONSE_DEMANDE_DE_SERVICE,
     SERVICE_EXISTE_PAS,
     ABONNEMENT,
@@ -19,15 +19,27 @@ public enum Protocol {
     DEMANDE_DE_LISTE_DE_SERVICES,
     REPONSE_DEMANDE_LISTE_DE_SERVICES,
     AJOUT_SERVICE,
-    DELETE_SERVICE, // TODO: SUPPRESSION_SERVICE
+    SUPPRESSION_SERVICE,
     VERIFIE_N_EXISTE_PAS,
     J_EXISTE;
 
+    /**
+     * Retourne le nom du message de type protocole à partir de l'ordinale
+     *
+     * @param ordinale
+     * @return
+     */
     public static String getByOrdinale(int ordinale) {
-        for(Protocol e : values()) {
+        for(Protocole e : values()) {
             if(e.ordinal() == ordinale) return e.getName();
         }
         return null;
     }
+
+    /**
+     * Retourne le nom du protocole
+     *
+     * @return
+     */
     public String getName() { return name(); }
 }

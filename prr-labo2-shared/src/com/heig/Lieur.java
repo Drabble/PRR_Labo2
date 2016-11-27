@@ -6,61 +6,41 @@
 package com.heig;
 
 /**
- * Defines a linker with an ip and a port
+ * Défini un lieur avec une IP et un port
  */
-public class Linker {
+public class Lieur {
     String ip;
     int port;
 
     /**
-     * Constructs a new linker with the specified ip and port
+     * Construit un nouveau lieur avec l'ip et le port spécifié
      *
      * @param ip
      * @param port
      */
-    public Linker(String ip, int port) {
+    public Lieur(String ip, int port) {
         this.ip = ip;
         this.port = port;
     }
 
-    /**
-     * Get the linker's ip
-     *
-     * @return the linker's ip
-     */
     public String getIp() {
         return ip;
     }
 
-    /**
-     * Set the linker's ip
-     *
-     * @param ip
-     */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /**
-     * Get the linker's port
-     *
-     * @return the linker's port
-     */
     public int getPort() {
         return port;
     }
 
-    /**
-     * Set the linker's port
-     *
-     * @param port
-     */
     public void setPort(int port) {
         this.port = port;
     }
 
     /**
-     * Convert the linker to string
+     * Converti le lieur en String
      *
      * @return
      */

@@ -8,16 +8,16 @@ package com.heig;
 import java.util.Date;
 
 /**
- * Defines a service which has a service id, an ip, a port and the date of its last use
+ * Défini un service avec une ip, un port et un id de service
  */
 public class Service {
     int idService;
     String ip;
     int port;
-    Date lastUse;
+    Date derniereUtilisation;
 
     /**
-     * Create a new service with the specified service id, ip and port.
+     * Crée un nouveau service avec un id, une ip et un port
      *
      * @param idService
      * @param ip
@@ -27,81 +27,46 @@ public class Service {
         this.idService = idService;
         this.ip = ip;
         this.port = port;
-        this.lastUse = null;
+        this.derniereUtilisation = null;
     }
 
-    /**
-     * Get the service id
-     *
-     * @return the service id
-     */
     public int getIdService() {
         return idService;
     }
 
-    /**
-     * Set the service id
-     *
-     * @param idService
-     */
     public void setIdService(int idService) {
         this.idService = idService;
     }
 
-    /**
-     * Get the ip
-     *
-     * @return the ip
-     */
     public String getIp() {
         return ip;
     }
 
-    /**
-     * Set the ip
-     *
-     * @param ip
-     */
     public void setIp(String ip) {
         this.ip = ip;
     }
 
-    /**
-     * Get the port
-     *
-     * @return the port
-     */
     public int getPort() {
         return port;
     }
 
-    /**
-     * Set the port
-     *
-     * @param port
-     */
     public void setPort(int port) {
         this.port = port;
     }
 
-    /**
-     * Get the last use date
-     *
-     * @return the last use date
-     */
-    public Date getLastUse() {
-        return lastUse;
+    public Date getDerniereUtilisation() {
+        return derniereUtilisation;
     }
 
     /**
-     * Set the lastUse date to the current time
+     * Met à jour le champs dernière utilisation avec la date actuelle
      */
-    public void use() {
-        this.lastUse = new Date();
+    public void utiliser() {
+        this.derniereUtilisation = new Date();
     }
 
     /**
-     * Convert the service to string
+     * Transforme le service en String pour l'affichage
      *
      * @return
      */
