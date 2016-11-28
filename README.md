@@ -28,7 +28,6 @@ Les arguements pour le lancement d'un client doivent etre les suivants :
 * 4eme arguement = port d'ecoute du lieur
 les arguments 3 et 4 pevent etre répété si nous avons plus d'un lieur
 
-
 Exemple de parametres minimal pour le lancement d'un client
  > 2226 1 127.0.0.1 2222
 
