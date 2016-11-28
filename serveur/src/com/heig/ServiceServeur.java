@@ -10,16 +10,16 @@ import java.net.*;
 import java.util.Random;
 
 /**
- * Au lancement le serveur contacte un lieur et s'il a une confirmation de la part de ce dernier, le serveur démarre.
- * Il répond aux demandes des clients et au verification d'existance des lieurs.
+ * Au lancement le serveur va se souscrire à un lieur dans sa liste de lieurs. Une fois qu'il aura reçu la confirmation
+ * de sa souscription/abonnement, il va répondre aux demandes des clients et aux verifications d'existance des lieurs.
  * La taille maximale d'une requête d'un client est de 1000 bytes.
  */
 public class ServiceServeur {
-    private final Lieur[] lieurs; // Liste de tous les lieurs
-    private final int idService;  // Id du service fourni
-    private final int port;       // Port utilisé pour la réception des paquets point à poinr
-    private final int tailleMaxRequete = 1000; // Taille maximum d'une requête d'un client au serveur
-    private final int timeout = 4000;
+    private final Lieur[] lieurs;               // Liste de tous les lieurs
+    private final int idService;                // Id du service fourni
+    private final int port;                     // Port utilisé pour la réception des paquets point à poinr
+    private final int tailleMaxRequete = 1000;  // Taille maximum d'une requête d'un client au serveur
+    private final int timeout = 4000;           // Temps avant d'attente maximal avant un timeout du socket
 
     /**
      * Création d'un nouveau serveur de service avec son id, son ip, son port et la liste des lieurs

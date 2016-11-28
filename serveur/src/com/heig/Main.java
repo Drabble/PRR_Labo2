@@ -12,7 +12,7 @@ import java.util.ArrayList;
  * Cette classe permet de créer un nouveau serveur de service echo et de le démarrer.
  *
  * Pour appeler le programme serveur, il faut lui passer en paramêtre son port, l'id du service qu'il va fournir
- * et la liste des lieurs
+ * et la liste des lieurs.
  *
  * Par example :
  *
