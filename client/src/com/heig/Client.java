@@ -22,6 +22,8 @@ public class Client {
     private final Lieur[] lieurs; // Liste des lieurs
     final int idService;          // Service demandé par le client
     final int port;               // Port pour l'envoi et la récéption de paquets UDP
+    final int timeout = 2000;     //temps avant de throw SocketTimeoutException
+    final int sleep = 10000;        //temps avant de refaire une demande
 
     /**
      * Création d'un nouveau client avec l'id du service qu'il va utiliser, son port et la liste des lieurs.
@@ -59,7 +61,7 @@ public class Client {
             DatagramPacket reponseDemandeDeServicePaquet = new DatagramPacket(buffer, buffer.length);
 
             try {
-                pointToPointSocket.setSoTimeout(2000);
+                pointToPointSocket.setSoTimeout(timeout);
                 pointToPointSocket.receive(reponseDemandeDeServicePaquet);
             } catch (SocketTimeoutException e) {
                 System.out.println("Le lieur n'a pas pu etre atteint");
@@ -108,6 +110,7 @@ public class Client {
                             }
 
                         }
+                        //si le service n'a pas été joind on catch l'exception
                     } catch (SocketTimeoutException e) {
                         byte[] serviceExistePasBuffer = {(byte) Protocole.SERVICE_EXISTE_PAS.ordinal(), (byte) idService,
                                 ip.getAddress()[0], ip.getAddress()[1], ip.getAddress()[2], ip.getAddress()[3],
@@ -123,9 +126,8 @@ public class Client {
                     pointToPointSocket.setSoTimeout(0);
                 }
             }
-
             // Attendre et relancer une demande
-            Thread.sleep(10000);
+            Thread.sleep(sleep);
         }
     }
 }

@@ -35,7 +35,8 @@ public class LieurServeur {
     private final Lieur[] lieurs; // Liste des autres lieurs
     private final int port;
     private final int portVerification;
-
+    private final int tailleMax = 702;
+    final int timeout = 2000;     //temps avant de throw SocketTimeoutException
 
 
     /**
@@ -72,9 +73,8 @@ public class LieurServeur {
 
             // Réception de la requête, taille max de 702 (le message le plus grand est celui d'envoi de la liste de services,
             // un byte pour le type de message, un pour le nombre de service et 7 par service avec un max de 100 services)
-            // TODO : est-ce que ça sert à quelque chose le 702 ? comme c'est juste pour la récupération de la liste des services
             // dans la méthode recupererListeService
-            byte[] buffer = new byte[702];
+            byte[] buffer = new byte[tailleMax];
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
             pointAPointSocket.receive(receivePacket);
 
@@ -143,7 +143,7 @@ public class LieurServeur {
             // definition d'un time out et reception de la liste des services. Si un lieur met plus de 2sec pour
             // répondre on passe au lieur suivant
             try {
-                pointAPointSocket.setSoTimeout(2000);
+                pointAPointSocket.setSoTimeout(timeout);
                 pointAPointSocket.receive(serviceListAddressPacket);
             } catch (SocketTimeoutException e) {
                 // Dans le cas d'un timeout, on passe au suivant Lieur
@@ -359,7 +359,7 @@ public class LieurServeur {
             // si nous avons eu une reponse dans les deux seconde, le service existe toujours, si non
             // on le supprime et notifie les autres lieurs
             DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
-            verifServiceSocket.setSoTimeout(2000);
+            verifServiceSocket.setSoTimeout(timeout);
             verifServiceSocket.receive(serviceResponsePacket);
 
             // If wrong type, delete service

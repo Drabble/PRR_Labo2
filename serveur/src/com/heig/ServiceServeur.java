@@ -19,6 +19,7 @@ public class ServiceServeur {
     private final int idService;  // Id du service fourni
     private final int port;       // Port utilisé pour la réception des paquets point à poinr
     private final int tailleMaxRequete = 1000; // Taille maximum d'une requête d'un client au serveur
+    private final int timeout = 4000;
 
     /**
      * Création d'un nouveau serveur de service avec son id, son ip, son port et la liste des lieurs
@@ -63,7 +64,7 @@ public class ServiceServeur {
         DatagramPacket linkerConfirmationPacket = new DatagramPacket(buffer, buffer.length);
         do {
             try {
-                pointAPointSocket.setSoTimeout(4000);
+                pointAPointSocket.setSoTimeout(timeout);
                 pointAPointSocket.receive(linkerConfirmationPacket);
             } catch (SocketTimeoutException e) {
                 System.out.print("Le lieur n'a pas pu etre atteint, arret du serveur");
