@@ -72,7 +72,7 @@ public class Client {
                 // Service non trouvé
                 if (reponseDemandeDeServicePaquet.getData()[0] == Protocole.SERVICE_EXISTE_PAS.ordinal()) {
                     System.out.println("le service demandé n'a pas ete trouve");
-                    break;
+                    return;
                 }
                 // Service trouvé, utilisation du service
                 else if (reponseDemandeDeServicePaquet.getData()[0] == Protocole.REPONSE_DEMANDE_DE_SERVICE.ordinal()) {
