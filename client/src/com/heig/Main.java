@@ -30,8 +30,8 @@ public class Main {
      */
     public static void main(String[] args) throws InterruptedException, IOException {
         // Récupération du port et de l'id
-        if (args.length < 2) {
-            System.out.println("Il faut fournir au moins le port et l'id du service que le client va utiliser");
+        if (args.length < 4) {
+            System.out.println("Il faut fournir au moins le port et l'id du service que le client va utiliser et l'ip et le prot d'un lieur");
             return;
         }
         int port = Integer.parseInt(args[0]);
