@@ -15,11 +15,11 @@ import java.util.Random;
  * La taille maximale d'une requête d'un client est de 1000 bytes.
  */
 public class ServiceServeur {
-    private final Lieur[] lieurs;               // Liste de tous les lieurs
-    private final int idService;                // Id du service fourni
-    private final int port;                     // Port utilisé pour la réception des paquets point à poinr
-    private final int tailleMaxRequete = 1000;  // Taille maximum d'une requête d'un client au serveur
-    private final int timeout = 4000;           // Temps avant d'attente maximal avant un timeout du socket
+    private final Lieur[] lieurs;                    // Liste de tous les lieurs
+    private final int idService;                     // Id du service fourni
+    private final int port;                          // Port utilisé pour la réception des paquets point à poinr
+    private final int tailleMaxRequete = 1000;       // Taille maximum d'une requête d'un client au serveur
+    private final int tempsMaxAttenteReponse = 4000; // Temps avant d'attente maximal avant un tempsMaxAttenteReponse du socket
 
     /**
      * Création d'un nouveau serveur de service avec son id, son ip, son port et la liste des lieurs
@@ -64,7 +64,7 @@ public class ServiceServeur {
         DatagramPacket linkerConfirmationPacket = new DatagramPacket(buffer, buffer.length);
         do {
             try {
-                pointAPointSocket.setSoTimeout(timeout);
+                pointAPointSocket.setSoTimeout(tempsMaxAttenteReponse);
                 pointAPointSocket.receive(linkerConfirmationPacket);
             } catch (SocketTimeoutException e) {
                 System.out.print("Le lieur n'a pas pu etre atteint, arret du serveur");
@@ -74,7 +74,7 @@ public class ServiceServeur {
 
         System.out.println("Confirmation de souscription reçue");
 
-        // On remet le timeout du socket à 0 (infini)
+        // On remet le tempsMaxAttenteReponse du socket à 0 (infini)
         pointAPointSocket.setSoTimeout(0);
 
         // Performer le service à l'infini maintenant qu'on est souscris aux lieurs

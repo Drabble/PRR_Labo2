@@ -42,7 +42,7 @@ public class LieurServeur {
     private final int portVerification;                 // Port pour les requêtes de vérification d'existence
     private final int tailleMaxListeServices = 702;     // Taille maximale du paquet de la liste des services
     private final int tailleMaxRequete = 100;           // Taille maximale d'un requête au lieur
-    private final int timeout = 2000;                   // Temps avant d'attente maximal avant un timeout du socket
+    private final int tempsMaxAttenteReponse = 2000;    // Temps avant d'attente maximal avant un tempsMaxAttenteReponse du socket
 
 
     /**
@@ -136,14 +136,14 @@ public class LieurServeur {
             byte[] buffer = new byte[tailleMaxListeServices];
             DatagramPacket serviceListAddressPacket = new DatagramPacket(buffer, buffer.length);
 
-            // On définit un timeout (si le Lieur n'est pas opérationel) et on reçoit le paquet.
+            // On définit un tempsMaxAttenteReponse (si le Lieur n'est pas opérationel) et on reçoit le paquet.
             // definition d'un time out et reception de la liste des services. Si un lieur met plus de 2sec pour
             // répondre on passe au lieur suivant
             try {
-                pointAPointSocket.setSoTimeout(timeout);
+                pointAPointSocket.setSoTimeout(tempsMaxAttenteReponse);
                 pointAPointSocket.receive(serviceListAddressPacket);
             } catch (SocketTimeoutException e) {
-                // Dans le cas d'un timeout, on passe au suivant Lieur
+                // Dans le cas d'un tempsMaxAttenteReponse, on passe au suivant Lieur
                 continue;
             }
 
@@ -169,7 +169,7 @@ public class LieurServeur {
             }
         }
 
-        // On remet le timeout à 0 (infini)
+        // On remet le tempsMaxAttenteReponse à 0 (infini)
         pointAPointSocket.setSoTimeout(0);
         System.out.println("La liste des services est à jour");
     }
@@ -373,7 +373,7 @@ public class LieurServeur {
                 // Si nous avons eu une réponse dans les deux secondes, le service existe toujours, si non
                 // on le supprime et notifie les autres lieurs
                 DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
-                verifServiceSocket.setSoTimeout(timeout);
+                verifServiceSocket.setSoTimeout(tempsMaxAttenteReponse);
                 verifServiceSocket.receive(serviceResponsePacket);
 
                 // Si on reçoit pas un message de type J_EXISTE, on le supprime
@@ -385,7 +385,7 @@ public class LieurServeur {
                     System.out.println("Le service existe");
                 }
             } catch (SocketTimeoutException e) {
-                // Si on a un timeout on le supprime
+                // Si on a un tempsMaxAttenteReponse on le supprime
                 System.out.println("Le service n'existe pas");
                 suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
             }
