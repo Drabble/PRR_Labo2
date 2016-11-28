@@ -15,13 +15,13 @@ L'objectif de lieur étant d'associer un client à un service fourni par l'un de
 
 ### Comportement des clients
 
-Le client doit obténir l'adresse et le port du service fournit par un serveur pour la toute prémière fois qu'il nécessite ce service.
-Par la suite il pourra alors utiliser l'adresse obténu pour reclamer directement le service auprès du serveur.
+Le client doit obtenir l'adresse et le port du service fournit par un serveur pour la toute prémière fois qu'il nécessite ce service.
+Par la suite il pourra alors utiliser l'adresse obtenue pour réclamer directement le service auprès du serveur.
 
-Les arguements pour le lancment d'un client doivent etre les suivants :
+Les arguements pour le lancement d'un client doivent etre les suivants :
 
 * 1er argument = port d'ecoute du client
-* 2eme argument = type de service
+* 2eme argument = type de service que le client va utiliser
 * 3eme arguement = ip du lieur
 * 4eme arguement = port d'ecoute du lieur
 les arguments 3 et 4 pevent etre répété si nous avons plus d'un lieur
@@ -109,7 +109,7 @@ Le tableau suivant présente les tests qui seront effectués.
 | --- | --- | --- |
 | Un lieur doit être obténu aléatoirement à partir d'une liste | succés | Aucun |
 | Un lieur ou un serveur doit être redemarré aussitôt qu'il est tombé en panne  | - | Non pris en compte, redemarrage manuel |
-| Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles   | succes | lancement du 1er lieur, lancment du serveur, lancment du second lieur. |
+| Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles   | succes | lancement du 1er lieur, lancement du serveur, lancement du second lieur. |
 | Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur   | succes | le client s'arrête si le lieur ne connais pas le service demandé |
 | Le lieur doit repondre uniquement aux service existants   | - |  le lieur ne repond qu'au service dans sa liste| 
 | Un client doit notifier un lieu d'un service non disponible   | succes |  |
