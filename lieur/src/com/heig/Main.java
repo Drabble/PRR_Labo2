@@ -22,7 +22,7 @@ public class Main {
 
     /**
      * Création et démarrage d'un lieur. Les paramêtres fournis doivent être dans cet ordre :
-     * port principal, port de vérification, liste des lieurs ({ip} {port}).
+     * <port principal> <port de vérification> [<ip> <port>] (liste des lieurs).
      *
      * @param args
      * @throws InterruptedException

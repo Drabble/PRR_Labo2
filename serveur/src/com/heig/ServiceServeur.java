@@ -46,7 +46,7 @@ public class ServiceServeur {
 
         // Création du socket point à point pour l'envoi de packet udp
         DatagramSocket pointAPointSocket = new DatagramSocket(port);
-        System.out.println("Serveur démarré!");
+        System.out.println("Démarrage du serveur");
 
         // Souscription à un lieur aléatoire dans la liste des lieurs
         int linkerNumber = rand.nextInt(lieurs.length);

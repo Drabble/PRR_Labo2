@@ -15,34 +15,39 @@ import java.util.NoSuchElementException;
 
 /**
  * Le lieur permet de faire le lien entre les services et les client. Il contient la liste des services actifs
- * Lors du démarage il va demander à une lieur de sa liste la liste de services actifs de ce dernier.
- * Une fois démarré, il serra possible aux services qui démarré d'indiquer leur existance au lieur, le lieur
+ * Lors du démarage il va demander à un lieur de sa liste la liste de services actifs de ce dernier.
+ * Une fois démarré, il sera possible aux services d'indiquer leur existance au lieur (souscription), le lieur
  * informera par la suite l'existance de ce service aux autres lieurs.
- * Il a aussi pour tache de verfier si un service est toujours actif si un client se pleind.
+ * Il va fournir aux clients qui demandent un service l'adresse ip et le port de ce service
+ * Il a aussi pour tâche de verifier si un service est toujours actif si un client se plaint, de le supprimer et de
+ * l'indiquer aux autres lieurs.
  *
- * Le LieurServer va utiliser le port précisé pour toutes les requêtes et va utiliser le port précisé + 1 pour
- * effectuer le test d'existence d'un service.
+ * Le LieurServer va utiliser le port passé dans le constructeur pour toutes les requêtes sauf pour la requête
+ * de vérification d'existence d'un service où il va utiliser le port portVerification passé au constructeur.
  *
  * Il aurait été plus performant d'utiliser le multicast pour l'envoi et la réception d'ajout/suppression
  * de services pour les lieurs mais il aurait fallu créer un thread supplémentaire pour l'écoute de ces requêtes et ça
  * aurait créer des problèmes de concurrence au niveau de la liste des services. Nous avons donc décider de ne pas le
- * faire pour garder la classe LieurServeur plus simple.
+ * faire pour garder la classe LieurServeur simple.
  *
- * // TODO : NE PAS HARDCODER LE 702 !!!
+ * La taille du paquet contenant la liste des services ne peut excéder 702 bytes. De ce fait un park de lieur ne peut
+ * pas avoir plus de 100 serveurs de service.
+ * La taille max d'un requête ne peut pas excéder 100 bytes. Aucun message défini dans le protocole ne devrait excéder
+ * cette taille de tampon.
  */
 public class LieurServeur {
     private List<Service> services = new ArrayList<>(); // Liste des services
-    private final Lieur[] lieurs; // Liste des autres lieurs
-    private final int port;
-    private final int portVerification;
-    private final int tailleMax = 702;
-    private final int timeout = 2000;     //temps avant de throw SocketTimeoutException
+    private final Lieur[] lieurs;                       // Liste des autres lieurs
+    private final int port;                             // Port d'écoute et d'envoi des requêtes
+    private final int portVerification;                 // Port pour les requêtes de vérification d'existence
+    private final int tailleMaxListeServices = 702;     // Taille maximale du paquet de la liste des services
+    private final int tailleMaxRequete = 100;           // Taille maximale d'un requête au lieur
+    private final int timeout = 2000;                   // Temps avant d'attente maximal avant un timeout du socket
 
 
     /**
      * Création d'un nouveau lieur avec un port principal, un port pour la vérification de l'existence d'un serveur
-     * et une liste de lieurs
-     *
+     * et la liste des autres lieurs
      */
     LieurServeur(int port, int portVerification, Lieur[] lieurs){
         this.port = port;
@@ -51,35 +56,31 @@ public class LieurServeur {
     }
 
     /**
-     * Démarrage du lieur. Au démarrage le lieur va questionner les autres lieur un à un pour obtenir une liste de
-     * service. Il va aussi répondre aux requêtes des clients
+     * Démarrage du lieur. Au démarrage le lieur va questionner un des autres lieurs pour obtenir une liste de
+     * services. Il va ensuite recevoir et répondre aux requêtes qu'il reçoit.
      *
      * @throws IOException
      * @throws InterruptedException
      */
     public void demarrer() throws IOException, InterruptedException {
-        // Création d'une connexion pointToPoint
+        // Création d'une connexion UDP point à point sur le port principal
         DatagramSocket pointAPointSocket = new DatagramSocket(port);
         System.out.println("Démarrage du lieur");
 
-        // Démarrage du lieur et syncronisation avec les autre lieur
+        // Syncronisation avec les autres lieurs
         recupererListeServices(pointAPointSocket);
 
         // Traitement de toutes les requêtes reçues
         while (true) {
             System.out.println("Attente d'une nouvelle demande...");
 
-            // Réception de la requête, taille max de 702 (le message le plus grand est celui d'envoi de la liste de services,
-            // un byte pour le type de message, un pour le nombre de service et 7 par service avec un max de 100 services)
-            // dans la méthode recupererListeService
-            byte[] buffer = new byte[tailleMax];
+            // Réception d'une requête
+            byte[] buffer = new byte[tailleMaxRequete];
             DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
             pointAPointSocket.receive(receivePacket);
 
-
             System.out.println("Liste actuelle");
             services.forEach(System.out::println);
-
 
             System.out.println("Nouvelle demande recue");
 
@@ -115,7 +116,8 @@ public class LieurServeur {
     }
 
     /**
-     * Méthode qui permet la synchronisation du nouveau lieur
+     * Méthode qui permet la synchronisation du nouveau lieur, en récupérant la liste des services depuis un des services
+     * opérationels.
      *
      * @param pointAPointSocket
      * @throws IOException
@@ -123,18 +125,18 @@ public class LieurServeur {
     private void recupererListeServices(DatagramSocket pointAPointSocket) throws IOException {
         System.out.println("Reception de la liste des services");
 
-        // Parcourir la liste des lieurs jusqu'à trouver un Lieur up
+        // Parcourir la liste des lieurs jusqu'à trouver un Lieur opérationel
         for (Lieur Lieur : lieurs) {
             // Création du paquet de demande
             DatagramPacket LieurPacket = new DatagramPacket(new byte[]{(byte) Protocole.DEMANDE_DE_LISTE_DE_SERVICES.ordinal()}, 1, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
             pointAPointSocket.send(LieurPacket);
 
-            // Création du paquet pour la récéption de la liste des services
-            // 1 byte pour le type, 1 pour le nombre de services, 100 services max
-            byte[] buffer = new byte[702];
+            // Création du paquet pour la récéption de la liste des services, taille max de 702 bytes.
+            // 1 byte pour le type de message, 1 pour le nombre de service et 7 par service avec un max de 100 services
+            byte[] buffer = new byte[tailleMaxListeServices];
             DatagramPacket serviceListAddressPacket = new DatagramPacket(buffer, buffer.length);
 
-            // On définit un timeout (si le Lieur n'est pas up) et on reçoit le paquet.
+            // On définit un timeout (si le Lieur n'est pas opérationel) et on reçoit le paquet.
             // definition d'un time out et reception de la liste des services. Si un lieur met plus de 2sec pour
             // répondre on passe au lieur suivant
             try {
@@ -157,11 +159,11 @@ public class LieurServeur {
                     InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(serviceListAddressPacket.getData(), 3 + i * 7, 7 + i * 7));
                     byte[] portByte = Arrays.copyOfRange(serviceListAddressPacket.getData(), 7 + i * 7, 9 + i * 7);
                     int port = ((portByte[1] & 0xff) << 8) | (portByte[0] & 0xff);
-
                     Service service = new Service(idService, ip.getHostAddress(), port);
+                    services.add(service);
+
                     System.out.println("Nouveau service reçu:");
                     System.out.println(service);
-                    services.add(service);
                 }
                 break;
             }
@@ -191,10 +193,11 @@ public class LieurServeur {
         // Ajout des services au paquet
         int i = 0;
         for (Service service : services) {
-            // Retrieve service data
+            // Transformation en byte de l'ip et du port du service
             byte[] ip = InetAddress.getByName(service.getIp()).getAddress();
             byte[] port = Util.intToBytes(service.getPort(), 2);
 
+            // ajout de l'ip et du port dans le paquet
             listeServiceData[2 + 7 * i] = (byte)service.getIdService();
             listeServiceData[3 + 7 * i] = ip[0];
             listeServiceData[4 + 7 * i] = ip[1];
@@ -229,16 +232,15 @@ public class LieurServeur {
         
         DatagramPacket servicePacket;
 
-        // Récupère le service qui a été utilisé le moin récemment si la liste des services n'est pas vide
+        // Récupère le service qui a été utilisé le moins récemment si la liste des services n'est pas vide
         if(!services.isEmpty()) {
             Service service;
             try {
-                // On récupère le service qui a été utilisé il y a le plus longtemps et qui a le bon id
+                // On récupère le service qui a été utilisé il y a le plus longtemps et qui a le bon id de service
                  service = services.stream().filter(s -> s.getIdService() == serviceNumberPacket.getData()[1])
                         .min((a, b) -> a.getDerniereUtilisation() == null ? -1 : b.getDerniereUtilisation() == null ? 1 : a.getDerniereUtilisation()
                                 .compareTo(b.getDerniereUtilisation())).get();
-            }
-            catch (NoSuchElementException e)
+            } catch (NoSuchElementException e)
             {
                 service = null;
             }
@@ -260,17 +262,19 @@ public class LieurServeur {
                 System.out.println(service);
             }
         }
+        // Si la liste est vide on envoie le message de non existence du service au client
         else
         {
             System.out.println("Aucun service avec cet id n'a été trouvé");
             servicePacket = new DatagramPacket(new byte[]{(byte) Protocole.SERVICE_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNumberPacket.getAddress().getHostName()), serviceNumberPacket.getPort());
         }
-        // envoi du paquet
+
+        // Envoi du paquet
         pointAPointSocket.send(servicePacket);
     }
 
     /**
-     * Methode permetant d'effacer un service de la liste (lieur -> lieur)
+     * Methode permetant d'effacer un service de la liste après qu'un lieur nous a indiqué qu'il n'existe plus(lieur -> lieur)
      *
      * @param deleteServicePacket
      * @throws InterruptedException
@@ -300,20 +304,20 @@ public class LieurServeur {
     }
 
     /**
-     * Methode qui ajoute un service à la liste (lieur -> lieur)
+     * Methode qui ajoute un service à la liste après qu'un autre lieur nous a signaler qu'il s'est souscri (lieur -> lieur)
      *
      * @param addServicePacket
      * @throws InterruptedException
      * @throws IOException
      */
     private void ajoutService(DatagramPacket addServicePacket) throws InterruptedException, IOException {
-        // Retrieve data from packet
+        // Récupération de l'ip de l'id et du port depuis le paquet reçu
         int idService = addServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(addServicePacket.getData(), 2, 6));
         byte[] portByte = {addServicePacket.getData()[7], addServicePacket.getData()[6]};
         int port = new BigInteger(portByte).intValue();
 
-        // Ajoute le service à la liste s'il n'existe pas déj$
+        // Ajout du service à la liste s'il n'existe pas déjà
         Service newService = new Service(idService, ip.getHostAddress(), port);
         System.out.println("Ajout du service:");
         System.out.println(newService);
@@ -324,7 +328,7 @@ public class LieurServeur {
 
     /**
      * Methode qui va verifier si un service et bien indisponible, si c'est le cas, il le supprime et informe les autres
-     * lieur de supprimer ce service.
+     * lieur de la suppression de ce service.
      *
      * @param serviceNotExistPacket
      * @param pointAPointSocket
@@ -342,11 +346,10 @@ public class LieurServeur {
         byte[] portByte = Arrays.copyOfRange(serviceNotExistPacket.getData(), 6, 8);
         int port = ((portByte[1] & 0xff) << 8) | (portByte[0] & 0xff);
 
-
-
         // Envoie un paquet au service que le client n'a pas pu joindre
         Service serviceNotReachable = new Service(idService, ip.getHostAddress(), port);
-        // pour ne pas surcharger le reseau on teste si le service existe bien dans nore liste
+
+        // Pour ne pas surcharger le reseau on teste si le service existe bien dans nore liste
         for (Service service : services) {
             if (service.getIdService() == serviceNotReachable.getIdService()
                     && service.getIp().equals(serviceNotReachable.getIp())
@@ -357,6 +360,7 @@ public class LieurServeur {
             }
         }
 
+        // Si le service à supprimer existe bien dans la liste des services, on vérifie son existence et on notifie les autres lieurs
         if(check) {
             DatagramPacket checkPacket = new DatagramPacket(new byte[]{(byte) Protocole.VERIFIE_N_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNotReachable.getIp()), serviceNotReachable.getPort());
             verifServiceSocket.send(checkPacket);
@@ -366,13 +370,13 @@ public class LieurServeur {
 
             byte[] bufferResponse = new byte[1];
             try {
-                // si nous avons eu une reponse dans les deux seconde, le service existe toujours, si non
+                // Si nous avons eu une réponse dans les deux secondes, le service existe toujours, si non
                 // on le supprime et notifie les autres lieurs
                 DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
                 verifServiceSocket.setSoTimeout(timeout);
                 verifServiceSocket.receive(serviceResponsePacket);
 
-                // If wrong type, delete service
+                // Si on reçoit pas un message de type J_EXISTE, on le supprime
                 int messageType = serviceResponsePacket.getData()[0];
                 if (messageType != (byte) Protocole.J_EXISTE.ordinal()) {
                     System.out.println("Le service n'existe pas");
@@ -381,6 +385,7 @@ public class LieurServeur {
                     System.out.println("Le service existe");
                 }
             } catch (SocketTimeoutException e) {
+                // Si on a un timeout on le supprime
                 System.out.println("Le service n'existe pas");
                 suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
             }
@@ -393,7 +398,7 @@ public class LieurServeur {
     }
 
     /**
-     * methode qui supprime le service de la liste de service et informe les autres lieurs
+     * Méthode qui supprime le service de la liste des services et informe les autres lieurs
      *
      * @param service,
      * @param pointAPointSocket
@@ -419,18 +424,16 @@ public class LieurServeur {
         byte[] port = Util.intToBytes(service.getPort(), 2);
         byte[] suppressionServiceBuffer = {(byte) Protocole.SUPPRESSION_SERVICE.ordinal(), (byte) service.getIdService(),
                                             ip[0], ip[1], ip[2], ip[3], port[0], port[1]};
+        // On envoie le paquet à chaque lieur
         for(Lieur Lieur : lieurs) {
-            // Création du paquet
             DatagramPacket servicePacket = new DatagramPacket(suppressionServiceBuffer, suppressionServiceBuffer.length, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
-
-            // Envoi du paquet
             pointAPointSocket.send(servicePacket);
         }
     }
 
     /**
-     * Methode d'ajout d'un nouveau service, envoi de l'information aux autres lieurs de l'existance de ce nouveau service,
-     * confirmation au service qu'il a bien été ajouté.
+     * Méthode de souscription/abonnement d'un nouveau service, envoi de l'information aux autres lieurs de l'existance
+     * de ce nouveau service, confirmation au service qu'il a bien été ajouté.
      *
      * @param subscribeServicePacket
      * @param pointAPointSocket
@@ -450,10 +453,8 @@ public class LieurServeur {
         System.out.println("Nouvelle souscription du service:");
         System.out.println(newService);
 
-
         byte[] ipByte = InetAddress.getByName(newService.getIp()).getAddress();
         byte[] portbyte = Util.intToBytes(newService.getPort(), 2);
-
         byte[] ajoutServiceBuffer = {(byte) Protocole.AJOUT_SERVICE.ordinal(), (byte) newService.getIdService(),
                                       ipByte[0], ipByte[1], ipByte[2], ipByte[3], portbyte[0], portbyte[1]};
 
@@ -461,13 +462,10 @@ public class LieurServeur {
 
         // Envoi de l'information aux autres lieurs
         for(Lieur Lieur : lieurs) {
-            // Création du paquet
+            // Création et envoi du paquet de signalement d'un nouveau service
             DatagramPacket servicePacket = new DatagramPacket(ajoutServiceBuffer, ajoutServiceBuffer.length, InetAddress.getByName(Lieur.getIp()), Lieur.getPort());
-
-            // Envoi du paquet
             pointAPointSocket.send(servicePacket);
         }
-
         System.out.println("Envoi de la confirmation de souscription au service");
 
         // Création du paquet de confirmation d'abonnement
