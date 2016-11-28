@@ -133,6 +133,11 @@ Nous avons fait une simulation mettant en place :
     * ip du lieur : 127.0.0.1
     * port du lieur : 2222
 
+Nous lançons nos jar dans cette ordre :
+1. lieur
+2. service
+3. client
+
 #### client
 <blockquote>
 Démarrage du client </br>
@@ -179,3 +184,5 @@ Nouvelle demande recue </br>
 Type de message: DEMANDE_DE_SERVICE </br>
 Envoi du service au client </br>
 </blockquote>
+
+Le cas montré ici est le cas le plus simple. Nous constatons que nous suivons bien le sénario voulu.
