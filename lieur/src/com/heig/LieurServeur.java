@@ -338,6 +338,7 @@ public class LieurServeur {
      */
     private void verifServiceExiste(DatagramPacket serviceNotExistPacket, DatagramSocket pointAPointSocket) throws InterruptedException, IOException {
         // Création d'une connexion point à point
+        boolean check = false;
         DatagramSocket verifServiceSocket = new DatagramSocket(portVerification);
 
         // Récupération du service depuis le packet
@@ -346,33 +347,51 @@ public class LieurServeur {
         byte[] portByte = Arrays.copyOfRange(serviceNotExistPacket.getData(), 6, 8);
         int port = ((portByte[1] & 0xff) << 8) | (portByte[0] & 0xff);
 
+
+
         // Envoie un paquet au service que le client n'a pas pu joindre
         Service serviceNotReachable = new Service(idService, ip.getHostAddress(), port);
-        DatagramPacket checkPacket = new DatagramPacket(new byte[]{(byte) Protocole.VERIFIE_N_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNotReachable.getIp()), serviceNotReachable.getPort());
-        verifServiceSocket.send(checkPacket);
+        // pour ne pas surcharger le reseau on teste si le service existe bien dans nore liste
+        for(int i = 0 ; i< services.size() ; i++) {
+            if (services.get(i).getIdService() == serviceNotReachable.getIdService()
+                    && services.get(i).getIp().equals(serviceNotReachable.getIp())
+                    && services.get(i).getPort() == serviceNotReachable.getPort()) {
+                check = true ;
+                System.out.println("service trouvé");
+                break;
+            }
+        }
 
-        System.out.println("Verification de l'existence du service:");
-        System.out.println(serviceNotReachable);
+        if(check == true) {
+            DatagramPacket checkPacket = new DatagramPacket(new byte[]{(byte) Protocole.VERIFIE_N_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNotReachable.getIp()), serviceNotReachable.getPort());
+            verifServiceSocket.send(checkPacket);
 
-        byte[] bufferResponse = new byte[1];
-        try{
-            // si nous avons eu une reponse dans les deux seconde, le service existe toujours, si non
-            // on le supprime et notifie les autres lieurs
-            DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
-            verifServiceSocket.setSoTimeout(timeout);
-            verifServiceSocket.receive(serviceResponsePacket);
+            System.out.println("Verification de l'existence du service:");
+            System.out.println(serviceNotReachable);
 
-            // If wrong type, delete service
-            int messageType = serviceResponsePacket.getData()[0];
-            if (messageType != (byte) Protocole.J_EXISTE.ordinal()) {
+            byte[] bufferResponse = new byte[1];
+            try {
+                // si nous avons eu une reponse dans les deux seconde, le service existe toujours, si non
+                // on le supprime et notifie les autres lieurs
+                DatagramPacket serviceResponsePacket = new DatagramPacket(bufferResponse, bufferResponse.length);
+                verifServiceSocket.setSoTimeout(timeout);
+                verifServiceSocket.receive(serviceResponsePacket);
+
+                // If wrong type, delete service
+                int messageType = serviceResponsePacket.getData()[0];
+                if (messageType != (byte) Protocole.J_EXISTE.ordinal()) {
+                    System.out.println("Le service n'existe pas");
+                    suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
+                } else {
+                    System.out.println("Le service existe");
+                }
+            } catch (SocketTimeoutException e) {
                 System.out.println("Le service n'existe pas");
                 suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
-            } else{
-                System.out.println("Le service existe");
             }
-        } catch (SocketTimeoutException e) {
-            System.out.println("Le service n'existe pas");
-            suppressionServiceEtNotificationLieurs(serviceNotReachable, pointAPointSocket);
+        }
+        else {
+            System.out.println("le service à déjà été supprimé ou ne se trouve pas dans la liste");
         }
 
         verifServiceSocket.close();
