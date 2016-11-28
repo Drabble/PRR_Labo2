@@ -47,7 +47,7 @@ les arguments 3 et 4 peuvent être répétés si nous avons plus d'un lieur
 Exemple de paramètres minimaux pour le lancement d'un serveur
  > 2227 1 127.0.0.1 2222
 
- ### Comportement des lieurs
+### Comportement des lieurs
 
 Lors du démarrage, le lieur va demander la liste des services existant à un autre lieur opérationnel. Il va ensuite répondre aux requêtes des serveurs, des clients et des autres lieurs (voir protocole).
 
