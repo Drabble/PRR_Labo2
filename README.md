@@ -113,7 +113,69 @@ Le tableau suivant présente les tests qui seront effectués.
 | Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur   | succes | le client s'arrête si le lieur ne connais pas le service demandé |
 | Le lieur doit repondre uniquement aux service existants   |  |  |
 | Un client doit notifier un lieu d'un service non disponible   | succes |  |
-| Après notification d'un client lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs   |  |  |
-|  Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs   |  |  |
-| Deux clients se connectent l'un apres l'autre (1 sec d'intervalle ) à un lieur pour l'informer que le service X est down (crash probable du au fait que le port d'ecoute du lieur sera occupé)   |  |  |
-| client fait une demande de service au lieur alors que celui si est en verification d'existance d'un autre service   |  |  |
+| Après notification d'un client le lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs   | succes | Quand un service est injoignable il est supprimé de la liste du lieur |
+|  Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs   |  |  |  |
+
+### Simulation effectuée
+
+Nous avons fait une simulation mettant en place :
+* un lieur avec les parmatres suivants
+    * port principal : 2222
+    * port de verification : 2223
+* un client
+    * port : 2226
+    * type de service voulu : 1
+    * ip du lieur : 127.0.0.1
+    * port du lieur : 2222
+* un service
+    * port : 2224
+    * type de service : 1
+    * ip du lieur : 127.0.0.1
+    * port du lieur : 2222
+
+#### client
+<blockquote>
+Démarrage du client </br>
+Le client va demander le service1 au lieur: </br>
+Service: ip 127.0.0.1, port 2222 </br>
+Reponse du lieur recue </br>
+Le service a été trouvé il est joignable a l'adresse: </br> 127.0.0.1:2224 </br>
+Message envoyé au service </br>
+Reponse du serveur reçue </br>
+taille 4 </br>
+0 : 1 </br>
+1 : 1 </br>
+2 : 1 </br>
+3 : 1 </br>
+</blockquote>
+
+### serveur
+<blockquote>
+Serveur démarré! </br>
+Tentative de souscription au lieur: </br>
+Service: ip 127.0.0.1, port 2222 </br>
+Confirmation de souscription reçue </br>
+Attente d'une nouvelle demande d'un client </br>
+Reception d'une nouvelle demande du client 127.0.0.1 2226 </br>
+</blockquote>
+
+### lieur
+<blockquote>
+Démarrage du lieur </br>
+Reception de la liste des services </br>
+La liste des services est à jour </br>
+Attente d'une nouvelle demande... </br>
+Liste actuelle </br>
+Nouvelle demande recue </br>
+Type de message: ABONNEMENT </br>
+Nouvelle souscription du service: </br>
+Service: id 1, ip 127.0.0.1, port 2224 </br>
+Notification aux autres lieurs de l'ajout du service </br>
+Envoi de la confirmation de souscription au service </br>
+Attente d'une nouvelle demande... </br>
+Liste actuelle </br>
+Service: id 1, ip 127.0.0.1, port 2224 </br>
+Nouvelle demande recue </br>
+Type de message: DEMANDE_DE_SERVICE </br>
+Envoi du service au client </br>
+</blockquote>
