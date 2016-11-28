@@ -102,7 +102,7 @@ Ce paquet est envoyé par le service après réception du paquet  <strong><stro
 
 
 
-### Tests à effectuer
+### Tests effectués
 
 Le tableau suivant présente les tests qui seront effectués.
 
