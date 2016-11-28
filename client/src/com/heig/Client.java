@@ -100,6 +100,13 @@ public class Client {
                         pointToPointSocket.receive(reponseServicePaquet);
                         if (reponseServicePaquet.getData()[0] == Protocole.REPONSE_DU_SERVICE.ordinal()) {
                             System.out.println("Reponse du serveur reçue");
+                            System.out.println("taille : " + + reponseServicePaquet.getData()[1]);
+
+                            for( int i = 0 ; i < reponseServicePaquet.getData()[1]; i++ )
+                            {
+                                System.out.println( i + " : " + reponseServicePaquet.getData()[2+i]);
+                            }
+
                         }
                     } catch (SocketTimeoutException e) {
                         byte[] serviceExistePasBuffer = {(byte) Protocole.SERVICE_EXISTE_PAS.ordinal(), (byte) idService,
