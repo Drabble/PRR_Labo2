@@ -20,21 +20,47 @@ Par la suite il pourra alors utiliser l'adresse obtenue pour réclamer directeme
 Le client va choisir un lieur aléatoire et lui formuler sa demande. Si le lieur ne répond pas, le client va s'arrêter.
 Si le service est inatteignable, le client le fera savoir au lieur et se terminera.
 
-Les arguements pour le lancement d'un client doivent etre les suivants :
+Les arguments pour le lancement d'un client doivent etre les suivants :
 
-* 1er argument = port d'ecoute du client
-* 2eme argument = type de service
+* 1er argument = port d'écoute du client
+* 2eme argument = type de service que le client va utiliser
 * 3eme arguement = ip du lieur
-* 4eme arguement = port d'ecoute du lieur
-les arguments 3 et 4 pevent etre répété si nous avons plus d'un lieur
+* 4eme arguement = port d'écoute du lieur
+les arguments 3 et 4 peuvent être répétés si nous avons plus d'un lieur
 
-Exemple de parametres minimal pour le lancement d'un client
+Exemple de paramètres minimaux pour le lancement d'un client
  > 2226 1 127.0.0.1 2222
 
 ### Comportement des serveurs
 
-Lors du demarrage, tout serveur s'inscrit auprès d'un lieur en lui transmettant son adresse IP, son port de service
-ainsi que le type du service rendu.
+Lors du démarrage, tout serveur s'inscrit auprès d'un lieur en lui transmettant son adresse IP, son port de service
+ainsi que le type du service rendu. Il va ensuite répondre aux demandes des clients et aux demandes d'existances des serveurs.
+
+Les arguements pour le lancement d'un serveur doivent etre les suivants :
+
+* 1er argument = port d'écoute du serveur
+* 2eme argument = type de service
+* 3eme arguement = ip du lieur
+* 4eme arguement = port d'écoute du lieur
+les arguments 3 et 4 peuvent être répétés si nous avons plus d'un lieur
+
+Exemple de paramètres minimaux pour le lancement d'un client
+ > 2227 1 127.0.0.1 2222
+ 
+ ### Comportement des lieurs
+
+Lors du démarrage, le lieur va demander la liste des services existant à un autre lieur opérationnel. Il va ensuite répondre aux requêtes des serveurs, des clients et des autres lieurs (voir protocole).
+
+Les arguements pour le lancement d'un lieur doivent etre les suivants :
+
+* 1er argument = port d'écoute du lieur
+* 1er argument = port d'écoute du lieur pour l'envoi/réception des messages de vérifications d'existence
+* 3eme arguement = ip d'un autre lieur
+* 4eme arguement = port d'écoute d'un autre lieur
+les arguments 3 et 4 peuvent être répétés si nous avons plus d'un lieur
+
+Exemple de paramètres minimaux pour le lancement d'un client
+ > 2222 2223 127.0.0.1 1111
 
 ### Protocole
 ![alt tag](prr.png)
@@ -178,7 +204,7 @@ taille 4 </br>
 
 ### serveur
 <blockquote>
-Serveur démarré! </br>
+Démarrage du serveur</br>
 Tentative de souscription au lieur: </br>
 Service: ip 127.0.0.1, port 2222 </br>
 Confirmation de souscription reçue </br>
@@ -207,4 +233,4 @@ Type de message: DEMANDE_DE_SERVICE </br>
 Envoi du service au client </br>
 </blockquote>
 
-Le cas montré ici est le cas le plus simple. Nous constatons que nous suivons bien le sénario voulu.
+Le cas montré ici est le cas le plus simple. Nous constatons que nous suivons bien le scénario voulu.
