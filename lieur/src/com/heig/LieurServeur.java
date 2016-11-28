@@ -22,6 +22,13 @@ import java.util.NoSuchElementException;
  *
  * Le LieurServer va utiliser le port précisé pour toutes les requêtes et va utiliser le port précisé + 1 pour
  * effectuer le test d'existence d'un service.
+ *
+ * Il aurait été plus performant d'utiliser le multicast pour l'envoi et la réception d'ajout/suppression
+ * de services pour les lieurs mais il aurait fallu créer un thread supplémentaire pour l'écoute de ces requêtes et ça
+ * aurait créer des problèmes de concurrence au niveau de la liste des services. Nous avons donc décider de ne pas le
+ * faire pour garder la classe LieurServeur plus simple.
+ *
+ * // TODO : NE PAS HARDCODER LE 702 !!!
  */
 public class LieurServeur {
     private List<Service> services = new ArrayList<>(); // Liste des services
@@ -275,17 +282,16 @@ public class LieurServeur {
      * @throws IOException
      */
     private void suppressionService(DatagramPacket deleteServicePacket) throws InterruptedException, IOException {
+        // Récupération du service
         int IDService = deleteServicePacket.getData()[1];
         InetAddress ip = InetAddress.getByAddress(Arrays.copyOfRange(deleteServicePacket.getData(), 2, 6));
-        byte[] portByte = new byte[2];
-        portByte[0] = deleteServicePacket.getData()[7];
-        portByte[1] = deleteServicePacket.getData()[6];
+        byte[] portByte = {deleteServicePacket.getData()[7], deleteServicePacket.getData()[6]};
         int port = new BigInteger(portByte).intValue();
-
         Service newService = new Service(IDService, ip.getHostAddress(), port);
 
         System.out.println("Suppression du service: " + newService);
 
+        // Suppression du service
         for(int i = 0 ; i< services.size() ; i++)
         {
             System.out.println(services.get(i));
