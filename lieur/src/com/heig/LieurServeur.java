@@ -36,15 +36,13 @@ public class LieurServeur {
     private final int port;
     private final int portVerification;
     private final int tailleMax = 702;
-    final int timeout = 2000;     //temps avant de throw SocketTimeoutException
+    private final int timeout = 2000;     //temps avant de throw SocketTimeoutException
 
 
     /**
      * Création d'un nouveau lieur avec un port principal, un port pour la vérification de l'existence d'un serveur
      * et une liste de lieurs
      *
-     * @throws InterruptedException
-     * @throws IOException
      */
     LieurServeur(int port, int portVerification, Lieur[] lieurs){
         this.port = port;
@@ -80,9 +78,7 @@ public class LieurServeur {
 
 
             System.out.println("Liste actuelle");
-            for (Service service : services) {
-                System.out.println(service);
-            }
+            services.forEach(System.out::println);
 
 
             System.out.println("Nouvelle demande recue");
@@ -122,7 +118,6 @@ public class LieurServeur {
      * Méthode qui permet la synchronisation du nouveau lieur
      *
      * @param pointAPointSocket
-     * @throws InterruptedException
      * @throws IOException
      */
     private void recupererListeServices(DatagramSocket pointAPointSocket) throws IOException {
@@ -352,17 +347,17 @@ public class LieurServeur {
         // Envoie un paquet au service que le client n'a pas pu joindre
         Service serviceNotReachable = new Service(idService, ip.getHostAddress(), port);
         // pour ne pas surcharger le reseau on teste si le service existe bien dans nore liste
-        for(int i = 0 ; i< services.size() ; i++) {
-            if (services.get(i).getIdService() == serviceNotReachable.getIdService()
-                    && services.get(i).getIp().equals(serviceNotReachable.getIp())
-                    && services.get(i).getPort() == serviceNotReachable.getPort()) {
-                check = true ;
+        for (Service service : services) {
+            if (service.getIdService() == serviceNotReachable.getIdService()
+                    && service.getIp().equals(serviceNotReachable.getIp())
+                    && service.getPort() == serviceNotReachable.getPort()) {
+                check = true;
                 System.out.println("service trouvé");
                 break;
             }
         }
 
-        if(check == true) {
+        if(check) {
             DatagramPacket checkPacket = new DatagramPacket(new byte[]{(byte) Protocole.VERIFIE_N_EXISTE_PAS.ordinal()}, 1, InetAddress.getByName(serviceNotReachable.getIp()), serviceNotReachable.getPort());
             verifServiceSocket.send(checkPacket);
 
