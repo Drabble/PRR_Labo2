@@ -108,13 +108,20 @@ Le tableau suivant présente les tests qui seront effectués.
 
 | **Tests** | **Resutats** | **Commentaires**<br/> |  
 | --- | --- | --- |
-| Un lieur doit être obténu aléatoirement à partir d'une liste | succès | Aucun |
+| Un serveur doit se souscrire à un lieur de la liste des lieurs quand il démarre | succès | Ok |
+| Un client doit demander un service à un lieur quand il démarre puis utiliser le service |  |  |
+| Un client doit informer le lieur quand un service donné ne répond pas |  |  |
+| Un lieur doit envoyer une confirmation aux services quand il s'inscrit | succès | Ok |
+| Un lieur doit notifier les autres lieurs quand un service s'inscrit à lui et ils doivent se mettre à jour |  |  |
+| Un lieur doit vérifier l'existence d'un service si un client lui indique qu'il ne répond pas et doit le supprimer de sa liste de services |  |  |
+| Un lieur doit notifier les autres lieurs quand un service est indisponible et ils doivent se mettre à jour |  |  |
+| le serveur doit fournir son service d'echo aux clients après s'être souscrit au lieur |  |  |
+| les serveurs doivent réponse aux demande d'existence des lieurs après s'être souscrit à un lieur |  |  |
+| Un lieur doit être obténu aléatoirement à partir d'une liste dans le client et le serveur | succès | Aucun |
 | Un lieur ou un serveur doit être redemarré aussitôt qu'il est tombé en panne  | - | Non pris en compte, redemarrage manuel |
-| Après rédémarrage d'un lieur, il doit se mettre à jours par rapport aux autres lieurs disponibles   | succès | lancement du 1er lieur, lancment du serveur, lancment du second lieur. Message : <p> Nouveau service reçu:Service: id 1,ip 127.0.0.1, port 12347|
+| Au démarrage et au redémarrage, un lieur doit se mettre à jour par rapport à un autre lieur disponible   | succès | lancement du 1er lieur, lancment du serveur, lancment du second lieur. Message : <p> Nouveau service reçu:Service: id 1,ip 127.0.0.1, port 12347|
+| Un lieur doit envoyer envoyer sa liste de service quand un autre lieur la lui demande | succès | Ok |
 | Le client doit s'arrêter ou attendre un délai après qu'il redemande un service inconnu auprès d'un lieur   | succès | le client s'arrête si le lieur ne connais pas le service demandé |
-| Le lieur doit repondre uniquement aux service existants   |  |  |
-| Un client doit notifier un lieu d'un service non disponible   | succès |  |
-| Après notification d'un client lieur doit mettre à jous sa table de service et la sychroniser avec les autres lieurs   |  |  |
-|  Le lieur doit distribuer les services de même type de façon cyclique entre les serveurs   |  |  |
-| Deux clients se connectent l'un apres l'autre (1 sec d'intervalle ) à un lieur pour l'informer que le service X est down (crash probable du au fait que le port d'ecoute du lieur sera occupé)   |  |  |
-| client fait une demande de service au lieur alors que celui si est en verification d'existance d'un autre service   |  |  |
+| Après notification d'un client qu'un service ne répond pas, un lieur doit le vérifier et notifier les autres lieurs  |  |  |
+| Le lieur doit distribuer les services de même type de façon cyclique entre les clients   |  |  |
+| Deux clients notifient presque simultanément qu'un service ne répond pas | Succès | Le lieur utilise un autre port pour l'envoi et la récéption du message de vérification d'un service, il ne recevra donc pas le 2ème message du client dans le receive de la confirmation d'existence du service. |
